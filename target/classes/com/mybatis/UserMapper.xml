@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.UserDao">
+	<!-- 判断用户名密码是否匹配 -->
+	<select id="selectUserByNameAndPwd" parameterType="com.po.User" resultType="com.po.User">
+		select * from user where userName = #{userName} and password = #{password}
+	</select>
+	<!-- 获取本人的留言信息 -->
+	<select id="getSelfRemarkMessage" parameterType="int" resultType="com.po.RemarkMessage">
+		select * from remark where userID = #{userID}
+	</select>
+	<!-- 判断是否重名 -->
+	<select id="selectRenamedUsers" parameterType="String" resultType="com.po.User">
+		select * from user where userName = #{userName}
+	</select>
+	<!-- 添加一个用户-->
+	<insert id="addUser" parameterType="com.po.User" keyProperty="userID" useGeneratedKeys="true">
+		insert into user (userName, password) values(#{userName}, #{password})
+	</insert>
+	
+</mapper>
