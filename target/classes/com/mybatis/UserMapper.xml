@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.UserDao">
+	<!-- 查询一个用户信息，判断用户名密码是否匹配 -->
+	<select id="selectUserByNameAndPwd" resultType="com.pojo.UserInfo">
+		select * from user where username = #{username} and password = #{password}
+	</select>
+	<!-- 注册时判断重名 -->
+	<select id="selectRenamedUsers" parameterType="String" resultType="String">
+		select username from user where username = #{username}
+	</select>
+	<!-- 注册用户账户-->
+	<insert id="addUser" parameterType="com.pojo.UserInfo" keyProperty="user_id" useGeneratedKeys="true">
+		insert into user(username, password, email)
+		values(#{username}, #{password}, #{email})
+	</insert>
+	<!-- 添加重置密码的问题信息 -->
+	<insert id="addQuestionInfo" parameterType="com.pojo.QuestionInfo" keyProperty="question_id" useGeneratedKeys="true">
+		insert into question(user_id, question1, answer1, question2, answer2)
+		values(#{user_id}, #{question1}, #{answer1}, #{question2}, #{answer2})
+	</insert>
+	<!-- 获取重置密码的问题信息 -->
+	<select id="selectQuestionInfo" parameterType="String" resultType="com.pojo.QuestionInfo">
+		select question.* from question, user
+		where user.user_id = question.user_id and user.username = #{username}
+	</select>
+	<!-- 修改密码 -->
+	<update id="updatePassword">
+		update user set password = #{password} where user_id = #{user_id}
+	</update>
+</mapper>
