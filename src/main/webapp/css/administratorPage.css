@@ -1,0 +1,69 @@
+.el-header {
+    background-color: #B3C0D1;
+    color: #333;
+    line-height: 60px;
+}
+
+.el-aside {
+    color: #333;
+}
+
+.el-dropdown {
+    float: right;
+    margin-top: 10px;
+    /*vertical-align: top;*/
+}
+
+/*չʾ��ϸ��Ϣ*/
+.showDetail {
+    padding-left: 15px;
+    /*���ӹ�����*/
+    height: 250px;
+    overflow: auto;
+}
+
+.show-detail-table {
+    font-size: 0;
+}
+
+.show-detail-table label {
+    width: 100px;
+    color: #99a9bf;
+}
+
+.show-detail-table .el-form-item {
+    margin-right: 0;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.el-table .warning-row {
+    background: oldlace;
+ }
+
+.avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+}
+
+.avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+}
+
+.avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+}

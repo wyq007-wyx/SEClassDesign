@@ -6,6 +6,7 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
     <!-- 告诉 MyBatis到哪里去找映射文件 -->
 	 <mappers>
         <mapper resource="com/mybatis/UserMapper.xml"/>
+        <mapper resource="com/mybatis/AdministratorMapper.xml"/>
  	</mappers>
 </configuration>
 
