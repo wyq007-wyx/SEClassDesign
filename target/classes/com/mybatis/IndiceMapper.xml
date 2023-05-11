@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.IndiceDao">
+	<!-- 查询所有体系信息 -->
+	<select id="selectAllSchemeInfo" parameterType="int" resultType="com.pojo.SchemeInfo">
+		select * from scheme where user_id = #{user_id}
+	</select>
+	<!-- 修改当前用户信息 -->
+	<update id="updateCurrentUserInfo" parameterType="com.pojo.UserInfo">
+		update user
+		set
+		username = #{username},
+		password = #{password},
+		email = #{email}
+		where user_id = #{user_id}
+	</update>
+	<!-- 插入一条体系信息 -->
+	<insert id="insertScheme" parameterType="com.pojo.SchemeInfo" keyProperty="scheme_id" useGeneratedKeys="true">
+		insert into scheme(scheme_name, user_id)
+		values(#{scheme_name}, #{user_id})
+	</insert>
+	<!-- 查询所有体系信息 -->
+	<select id="selectSchemeFuzzy" resultType="com.pojo.SchemeInfo">
+		select * from scheme where scheme_name like #{scheme_name} and user_id = #{user_id}
+	</select>
+	<!-- 修改体系信息 -->
+	<update id="updateSchemeInfo" parameterType="com.pojo.SchemeInfo">
+		update scheme
+		set
+		scheme_name = #{scheme_name}
+		where user_id = #{user_id} and scheme_id = #{scheme_id}
+	</update>
+	<delete id="deleteScheme" parameterType="int">
+		delete from scheme where scheme_id = #{scheme_id}
+	</delete>
+	<select id="getSingleSchemeDetailInfo" resultType="com.pojo.IndiceInfo">
+		select indice.* from indice, scheme 
+		where indice.scheme_id = #{scheme_id}
+		and indice.scheme_id = scheme.scheme_id
+		and scheme.user_id = #{user_id}
+	</select>
+</mapper>

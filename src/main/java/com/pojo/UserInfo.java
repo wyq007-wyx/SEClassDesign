@@ -1,5 +1,9 @@
 package com.pojo;
-//用户的详细信息
+/**
+ * 用户的详细信息
+ * @author 23208
+ *
+ */
 public class UserInfo{
 	private int user_id;
 	private String username;//用户名
