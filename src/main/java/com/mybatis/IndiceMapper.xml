@@ -7,6 +7,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="selectAllSchemeInfo" parameterType="int" resultType="com.pojo.SchemeInfo">
 		select * from scheme where user_id = #{user_id}
 	</select>
+	<!-- 查询所有算子信息 -->
+	<select id="selectAllOperator" resultType="com.pojo.OperatorInfo">
+		select * from operator
+	</select>
 	<!-- 修改当前用户信息 -->
 	<update id="updateCurrentUserInfo" parameterType="com.pojo.UserInfo">
 		update user
@@ -32,13 +36,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		scheme_name = #{scheme_name}
 		where user_id = #{user_id} and scheme_id = #{scheme_id}
 	</update>
+	<!-- 删除一个体系 -->
 	<delete id="deleteScheme" parameterType="int">
 		delete from scheme where scheme_id = #{scheme_id}
 	</delete>
+	<!-- 获取一个体系的所有指标信息 -->
 	<select id="getSingleSchemeDetailInfo" resultType="com.pojo.IndiceInfo">
 		select indice.* from indice, scheme 
-		where indice.scheme_id = #{scheme_id}
+		where scheme.user_id = #{user_id}
+		and scheme.scheme_id = #{scheme_id}
 		and indice.scheme_id = scheme.scheme_id
-		and scheme.user_id = #{user_id}
 	</select>
+	<!-- 删除一个指标 -->
+	<delete id="deleteIndice" parameterType="int">
+		delete from indice where indice_id = #{indice_id}
+	</delete>
 </mapper>

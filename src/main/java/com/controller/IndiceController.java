@@ -14,6 +14,7 @@ import com.alibaba.fastjson.JSON;
 import com.dao.IndiceDao;
 import com.pojo.UserInfo;
 import com.pojo.IndiceInfo;
+import com.pojo.OperatorInfo;
 import com.pojo.SchemeInfo;
 
 @Controller
@@ -21,7 +22,12 @@ import com.pojo.SchemeInfo;
 public class IndiceController {
 	@Autowired
 	private IndiceDao indiceDao;
-	
+	/**
+	 * 获取所有的体系信息
+	 * @param user_id 用户id
+	 * @param response
+	 * @throws IOException
+	 */
 	@RequestMapping(params = "request=SchemeInfoForDisplay")
 	public void getAllSchemeInfo(String user_id, HttpServletResponse response) throws IOException {
 		try {
@@ -32,7 +38,18 @@ public class IndiceController {
 			e.printStackTrace();
 		}
 	}
-	
+	/**
+	 * 获取所有的算子
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=getAllOperators")
+	public void getAllOperators(HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=getAllOperators的url请求");
+		List<OperatorInfo> data = this.indiceDao.selectAllOperator();
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(data));
+	}
 	/**
 	 * 退出登录
 	 * 
@@ -141,5 +158,18 @@ public class IndiceController {
 		List<IndiceInfo> data = this.indiceDao.getSingleSchemeDetailInfo(Integer.parseInt(scheme_id), Integer.parseInt(user_id));
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(data));
+	}
+	/**
+	 * 删除指标
+	 * @param request
+	 * @param response
+	 * @throws IOException 
+	 */
+	@RequestMapping(params = "request=deleteIndice")
+	public void deleteIndice(String indice_id, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=deleteIndice的url请求");
+		int num = this.indiceDao.deleteIndice(Integer.parseInt(indice_id));
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(num));
 	}
 }

@@ -120,13 +120,73 @@
                             </template>
                         </el-table-column>
                     </el-table>
+                    <!-- 点击查看体系详情，展开右侧抽屉 -->
                     <el-drawer v-bind:title="schemeDrawerTitle" :visible.sync="schemeDetailDrawerVisible"
-                        :before-close="handleSchemeDrawerClose">
-                        <span>我来啦!</span>
+                        direction="rtl" size="50%">
+                        <!-- 显示所有标本信息 -->
+                        <el-table :data="singleSchemeDetailInfo">
+                            <el-table-column type="index" align="center"></el-table-column>
+                            <el-table-column prop="indice_id" label="指标id" align="center">
+                            </el-table-column>
+                            <el-table-column prop="indice_name" label="指标名称" align="center">
+                            </el-table-column>
+                            <el-table-column prop="indice_weight" label="指标权重" align="center">
+                            </el-table-column>
+                            <el-table-column prop="father_id" label="父节点id" align="center">
+                            </el-table-column>
+                            <el-table-column prop="operator_id" label="算子" align="center">
+                            </el-table-column>
+                            <el-table-column label="操作" align="center" fixed="right">
+                                <template slot-scope="scope">
+                                    <el-button type="primary" icon="el-icon-edit" size="mini"
+                                        @click="clickChangeIndiceBtn(scope.row)" circle>
+                                    </el-button>
+                                    <el-button type="danger" icon="el-icon-delete" size="mini"
+                                        @click="clickDeleteIndiceBtn(scope.row)" circle>
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <!-- 内部抽屉：添加、修改指标 -->
+                        <el-drawer v-bind:title="innerDrawerTitle" :append-to-body="true" :show-close="false"
+                            :visible.sync="innerDrawerVisible" custom-class="demo-drawer">
+                            <div class="demo-drawer__content">
+                                <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="120px">
+                                    <el-form-item label="指标名称">
+                                        <el-input v-model="indiceForm.indice_name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="指标权重">
+                                        <el-slider v-model="indiceForm.indice_weight" :format-tooltip="formatTooltip">
+                                        </el-slider>
+                                    </el-form-item>
+                                    <el-form-item label="父节点id">
+                                        <el-input v-model="indiceForm.father_id" disabled></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="算子">
+                                        <el-select v-model="indiceForm.operator_id" placeholder="请选择算子">
+                                            <el-option v-for="item in operators" :label="item.operator_description"
+                                                :value="item.operator_id" :key="item.operator_id">
+                                            </el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="所属体系id">
+                                        <el-input v-model="indiceForm.scheme_id" disabled></el-input>
+                                    </el-form-item>
+                                </el-form>
+                                <div class="demo-drawer__footer" style="position: fixed; bottom: 0; text-align: center; padding: 20px;">
+                                    <el-button @click="cancelAddOrChangeForm" style="width: 10vw;">取 消</el-button>
+                                    <el-button type="primary" @click="addOrChangeIndice" style="width: 10vw;">
+                                        确定</el-button>
+                                </div>
+                            </div>
+                        </el-drawer>
                     </el-drawer>
                 </el-main>
+                <el-main v-else>
+
+                </el-main>
                 <!--分页工具条-->
-                <el-footer>
+                <el-footer v-if="pageNo==1">
                     <div class="block">
                         <el-pagination @current-change="handleCurrentChange" :current-page="page.currentPage"
                             :page-size="page.pageSize" layout="total, prev, pager, next, jumper" :total="page.total">
@@ -164,6 +224,8 @@
                     password: '',
                     email: ''
                 },
+                //所有的算子
+                operators: [],
                 //表格用的体系信息
                 schemeTableData: [],
                 //查询用的体系信息
@@ -174,6 +236,22 @@
                 singleSchemeDetailInfo: [],
                 //用于展示体系指标信息的抽屉的标题，是体系名
                 schemeDrawerTitle: '',
+                //要显示哪个体系
+                schemeIDForDisplay: '',
+                //内部抽屉是否显示
+                innerDrawerVisible: false,
+                //内部抽屉的名字
+                innerDrawerTitle: '',
+                //新增或修改指标的表单
+                indiceForm: {
+                    indice_id: '',
+                    indice_name: '',
+                    indice_weight: '',
+                    indice_value: '',
+                    father_id: '',
+                    operator_id: '',
+                    scheme_id: ''
+                },
                 //用于分页
                 page: {
                     //当前页数
@@ -188,6 +266,7 @@
         mounted() { //HTML页面渲染成功，就获取所有用户的信息    
             this.currentUser = ${sessionScope.currentUser}; //从session中获取当前正在登录的对象
             this.getSchemeInfo();
+            this.getAllOperator(); //获取所有的算子
         },
         methods: {
             //页面切换
@@ -200,8 +279,59 @@
 
                 } else { //运行
                     this.pageNo = 3;
-
+                    const h = this.$createElement;
+                    var _this = this;
+                    this.$msgbox({
+                        title: '请选择体系', //弹框标题
+                        //弹框信息
+                        message: h('el-select', {
+                                props: {
+                                    value: '',
+                                    filterable: true
+                                },
+                                ref: 'selectView',
+                                on: {
+                                    change: e => {
+                                        _this.schemeIDForDisplay = e;
+                                        _this.$refs.selectView.value = e;
+                                    }
+                                }
+                            },
+                            [
+                                _this.schemeTableData.map(it => {
+                                    return h('el-option', {
+                                        props: {
+                                            key: it.scheme_id,
+                                            label: it.scheme_name,
+                                            value: it.scheme_id
+                                        }
+                                    });
+                                })
+                            ]
+                        ),
+                        showCancelButton: true,
+                        closeOnClickModal: false,
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消'
+                    }).then(_ => {
+                        //成功操作
+                        console.log('点击确定，运行体系scheme_id=' + _this.schemeIDForDisplay);
+                    }).catch(_ => {
+                        //取消操作
+                        console.log('取消');
+                    });
                 }
+            },
+            //获取所有的算子
+            getAllOperator() {
+                var _this = this;
+                axios({
+                    method: 'get',
+                    url: _this.urlHeader + 'request=getAllOperators'
+                }).then(function (resp) {
+                    console.log('获取到了所有算子信息:\n' + resp.data);
+                    _this.operators = resp.data;
+                })
             },
             //获取所有体系信息
             getSchemeInfo() {
@@ -222,11 +352,9 @@
                 this.$prompt('请输入新的体系名称', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
-                    inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,10}$/,
+                    inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,20}$/,
                     inputErrorMessage: '体系名称格式不正确'
-                }).then(({
-                    value
-                }) => {
+                }).then(({value}) => {
                     var data = {
                         user_id: _this.currentUser.user_id,
                         scheme_name: value
@@ -334,15 +462,17 @@
             displayScheme(row) {
                 console.log('展示体系列表');
                 //准备数据
-                this.schemeDrawerTitle = row.system_name;//抽屉标题
-                this.getSingleSchemeDetailInfo();//获取单个体系的所有指标信息
-                //表格数据
+                console.log('体系信息' + row.scheme_name + row.scheme_id);
+                this.schemeDrawerTitle = row.scheme_name; //抽屉标题
+                this.getSingleSchemeDetailInfo(row.scheme_id); //获取单个体系的所有指标信息
+
+                //打开抽屉
                 this.schemeDetailDrawerVisible = true;
             },
             //获取单个体系的所有指标信息
-            getSingleSchemeDetailInfo(row){
+            getSingleSchemeDetailInfo(id) {
                 var _this = this;
-                var data = 'scheme_id=' + row.scheme_id + '&user_id=' + this.currentUser.user_id;
+                var data = 'scheme_id=' + id + '&user_id=' + this.currentUser.user_id;
                 axios({
                     method: 'post',
                     url: _this.urlHeader + 'request=SingleSchemeDetailInfo',
@@ -352,10 +482,80 @@
                     _this.singleSchemeDetailInfo = resp.data;
                 })
             },
-            //关闭抽屉前的操作
-            handleSchemeDrawerClose(done) {
-                schemeDetailDrawerVisible = false;
-                done();
+            //内部抽屉点击取消
+            cancelAddOrChangeForm(){
+                this.innerDrawerVisible = false;//关闭抽屉
+                this.$refs.addOrChangeIndiceForm.resetFields();//重置表单域
+            },
+            //点击了新增指标的按钮
+            clickAddIndiceBtn() {
+                this.innerDrawerTitle = '新增指标';
+                this.innerDrawerVisible = true; //显示内部抽屉
+            },
+            //点击了修改指标的按钮
+            clickChangeIndiceBtn(row) {
+                this.innerDrawerTitle = '修改指标';
+                this.indiceForm = row; //获取表单数据
+                this.innerDrawerVisible = true; //显示内部抽屉
+            },
+            //添加或修改指标
+            addOrChangeIndice() {
+                var url, message;
+                if (this.innerDrawerTitle == '新增指标') {
+                    url = _this.urlHeader + 'request=createIndice';
+                    message = '创建成功！';
+                } else {
+                    url = _this.urlHeader + 'request=changeIndice';
+                    message = '修改成功！';
+                }
+                //创建或修改体系
+                axios({
+                    method: "post",
+                    url: url,
+                    data: _this.indiceForm
+                }).then(function (resp) {
+                    console.log("获取到了……\n" + resp.data); //创建成功
+                    //刷新页面
+                    if (resp.data == 1) {
+                        Vue.prototype.$message({
+                            message: message,
+                            type: 'success'
+                        });
+                        _this.getSingleSchemeDetailInfo(_this.indiceForm.scheme_id);
+                    }
+                })
+            },
+            //点击了删除指标的按钮
+            clickDeleteIndiceBtn(row) {
+                var _this = this;
+                Vue.prototype.$confirm('此操作将永久删除这个指标, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => { //点击了确定
+                    //删除一个指标
+                    var data = 'indice_id=' + row.indice_id;
+                    axios({
+                        method: "post",
+                        url: _this.urlHeader + 'request=deleteIndice',
+                        data: data
+                    }).then(function (resp) {
+                        console.log("获取到了……\n" + resp.data); //删除成功
+                        //刷新页面
+                        if (resp.data == 1) {
+                            Vue.prototype.$message({
+                                message: '删除成功！',
+                                type: 'success'
+                            });
+                            _this.getSingleSchemeDetailInfo(row.scheme_id);
+                        }
+                    })
+                }).catch(() => { //点击了取消
+                    Vue.prototype.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
             },
             //修改体系
             changeScheme(row) {
@@ -431,6 +631,10 @@
             //以体系树形式展示
             displaySchemeByTree(row) {
                 console.log('展示体系树');
+            },
+            //滑块数值格式化
+            formatTooltip(val) {
+                return val / 100;
             },
             //当页码改变
             handleCurrentChange(val) {
