@@ -115,7 +115,7 @@
                                 <el-button size="mini" @click="changeScheme(scope.row)" plain>修改</el-button>
                                 <el-button type="danger" size="mini" @click="deleteScheme(scope.row)" plain>删除
                                 </el-button>
-                                <el-button size="mini" @click="displaySchemeByTree(scope.row)" plain disabled>体系树
+                                <el-button size="mini" @click="displaySchemeByTree(scope.row)" plain>体系树
                                 </el-button>
                             </template>
                         </el-table-column>
@@ -123,18 +123,30 @@
                     <!-- 点击查看体系详情，展开右侧抽屉 -->
                     <el-drawer v-bind:title="schemeDrawerTitle" :visible.sync="schemeDetailDrawerVisible"
                         direction="rtl" size="50%">
-                        <!-- 显示所有标本信息 -->
-                        <el-table :data="singleSchemeDetailInfo">
+                        <!-- 创建新指标的按钮 -->
+                        <el-button type="primary" icon="el-icon-edit" style="margin: 0 0 10px 10px;"
+                            @click="clickAddIndiceBtn" plain>
+                            创建新指标</el-button>
+                        <!-- 显示所有指标信息 -->
+                        <el-table :data="singleSchemeDetailInfo" height="90%">
                             <el-table-column type="index" align="center"></el-table-column>
                             <el-table-column prop="indice_id" label="指标id" align="center">
                             </el-table-column>
                             <el-table-column prop="indice_name" label="指标名称" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.indice_name) == 'undefined' ? '无' : scope.row.indice_name }}</template>
                             </el-table-column>
                             <el-table-column prop="indice_weight" label="指标权重" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.indice_weight) == 'undefined' ? '无' : scope.row.indice_weight }}</template>
                             </el-table-column>
                             <el-table-column prop="father_id" label="父节点id" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.father_id) == 'undefined' ? '无' : scope.row.father_id }}</template>
                             </el-table-column>
                             <el-table-column prop="operator_id" label="算子" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.operator_id) == 'undefined' ? '无' : scope.row.operator_id }}</template>
                             </el-table-column>
                             <el-table-column label="操作" align="center" fixed="right">
                                 <template slot-scope="scope">
@@ -149,34 +161,36 @@
                         </el-table>
                         <!-- 内部抽屉：添加、修改指标 -->
                         <el-drawer v-bind:title="innerDrawerTitle" :append-to-body="true" :show-close="false"
-                            :visible.sync="innerDrawerVisible" custom-class="demo-drawer">
-                            <div class="demo-drawer__content">
+                            :visible.sync="innerDrawerVisible">
+                            <div>
                                 <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="120px">
-                                    <el-form-item label="指标名称">
+                                    <el-form-item label="指标名称" prop="indice_name">
                                         <el-input v-model="indiceForm.indice_name"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="指标权重">
+                                    <el-form-item label="指标权重" prop="indice_weight">
                                         <el-slider v-model="indiceForm.indice_weight" :format-tooltip="formatTooltip">
                                         </el-slider>
                                     </el-form-item>
-                                    <el-form-item label="父节点id">
-                                        <el-input v-model="indiceForm.father_id" disabled></el-input>
+                                    <el-form-item label="父节点id" prop="father_id">
+                                        <el-input v-model="indiceForm.father_id"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="算子">
+                                    <el-form-item label="算子" prop="operator_id">
                                         <el-select v-model="indiceForm.operator_id" placeholder="请选择算子">
                                             <el-option v-for="item in operators" :label="item.operator_description"
                                                 :value="item.operator_id" :key="item.operator_id">
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="所属体系id">
+                                    <el-form-item label="所属体系id" prop="scheme_id">
                                         <el-input v-model="indiceForm.scheme_id" disabled></el-input>
                                     </el-form-item>
                                 </el-form>
-                                <div class="demo-drawer__footer" style="position: fixed; bottom: 0; text-align: center; padding: 20px;">
-                                    <el-button @click="cancelAddOrChangeForm" style="width: 10vw;">取 消</el-button>
-                                    <el-button type="primary" @click="addOrChangeIndice" style="width: 10vw;">
-                                        确定</el-button>
+                                <div style="position: fixed; bottom: 0; width: 100%; padding-bottom: 20px;">
+                                    <el-button @click="innerDrawerVisible = false"
+                                        style="float: left; width: 12vw; margin-left: 2vw;">取 消</el-button>
+                                    <el-button type="primary" @click="addOrChangeIndice"
+                                        style="float: left; width: 12vw; margin-left: 2vw;">
+                                        确 定</el-button>
                                 </div>
                             </div>
                         </el-drawer>
@@ -243,15 +257,7 @@
                 //内部抽屉的名字
                 innerDrawerTitle: '',
                 //新增或修改指标的表单
-                indiceForm: {
-                    indice_id: '',
-                    indice_name: '',
-                    indice_weight: '',
-                    indice_value: '',
-                    father_id: '',
-                    operator_id: '',
-                    scheme_id: ''
-                },
+                indiceForm: {},
                 //用于分页
                 page: {
                     //当前页数
@@ -274,9 +280,9 @@
                 if (index == '1-1') { //列表
                     this.pageNo = 1;
                     this.getSchemeInfo();
-                } else if (index == '2-1') { //体系树
+                } else if (index == '2-1') { //创建体系树
                     this.pageNo = 2;
-
+                    this.createNewScheme();
                 } else { //运行
                     this.pageNo = 3;
                     const h = this.$createElement;
@@ -354,7 +360,9 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,20}$/,
                     inputErrorMessage: '体系名称格式不正确'
-                }).then(({value}) => {
+                }).then(({
+                    value
+                }) => {
                     var data = {
                         user_id: _this.currentUser.user_id,
                         scheme_name: value
@@ -460,12 +468,10 @@
             },
             //展示体系的指标详情
             displayScheme(row) {
-                console.log('展示体系列表');
                 //准备数据
-                console.log('体系信息' + row.scheme_name + row.scheme_id);
                 this.schemeDrawerTitle = row.scheme_name; //抽屉标题
+                this.schemeIDForDisplay = row.scheme_id; //修改变量
                 this.getSingleSchemeDetailInfo(row.scheme_id); //获取单个体系的所有指标信息
-
                 //打开抽屉
                 this.schemeDetailDrawerVisible = true;
             },
@@ -482,24 +488,22 @@
                     _this.singleSchemeDetailInfo = resp.data;
                 })
             },
-            //内部抽屉点击取消
-            cancelAddOrChangeForm(){
-                this.innerDrawerVisible = false;//关闭抽屉
-                this.$refs.addOrChangeIndiceForm.resetFields();//重置表单域
-            },
             //点击了新增指标的按钮
             clickAddIndiceBtn() {
                 this.innerDrawerTitle = '新增指标';
+                this.indiceForm = {};
+                this.indiceForm.scheme_id = this.schemeIDForDisplay;
                 this.innerDrawerVisible = true; //显示内部抽屉
             },
             //点击了修改指标的按钮
             clickChangeIndiceBtn(row) {
                 this.innerDrawerTitle = '修改指标';
-                this.indiceForm = row; //获取表单数据
+                this.indiceForm = JSON.parse(JSON.stringify(row)); //获取表单数据，深拷贝
                 this.innerDrawerVisible = true; //显示内部抽屉
             },
             //添加或修改指标
             addOrChangeIndice() {
+                var _this = this;
                 var url, message;
                 if (this.innerDrawerTitle == '新增指标') {
                     url = _this.urlHeader + 'request=createIndice';
@@ -521,7 +525,9 @@
                             message: message,
                             type: 'success'
                         });
-                        _this.getSingleSchemeDetailInfo(_this.indiceForm.scheme_id);
+                        _this.innerDrawerVisible = false; //关闭表单
+                        _this.$refs.addOrChangeIndiceForm.resetFields(); //重置表单域
+                        _this.getSingleSchemeDetailInfo(_this.indiceForm.scheme_id); //刷新
                     }
                 })
             },
@@ -631,6 +637,7 @@
             //以体系树形式展示
             displaySchemeByTree(row) {
                 console.log('展示体系树');
+                window.location.href = "http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" + row.scheme_id;
             },
             //滑块数值格式化
             formatTooltip(val) {
