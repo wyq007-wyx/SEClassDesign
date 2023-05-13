@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.TreeDao">
+	<!-- 选出根节点 -->
+	<select id="selectRoot"  resultType="com.pojo.IndiceInfo">
+		select * from indice where scheme_id = #{scheme_id} and father_id=#{root_id}
+	</select>
+	<!-- 选出同一个父亲下的所有子节点 -->
+	<select id="selectIndiceBySystemIdAndFatherId" resultType="com.pojo.IndiceInfo">
+		select * from indice where scheme_id = #{scheme_id} and father_id=#{father_id}
+	</select>
+	<!-- 添加一个子节点 -->
+	<insert id="addTreeNode" parameterType="com.pojo.IndiceInfo" keyProperty="indice_id" useGeneratedKeys="true">
+		insert into indice(indice_name, father_id, scheme_id)
+		values(#{indice_name}, #{father_id}, #{scheme_id})
+	</insert>
+	<!-- 更新一个子节点 -->
+	<update id="updateIndice" parameterType="com.pojo.IndiceInfo">
+		update indice
+		set indice_name=#{indice_name},
+			indice_weight=#{indice_weight},
+			operator_id=#{operator_id}
+		where indice_id=#{indice_id};
+	</update>
+	<!-- 删除一个体系 -->
+	<delete id="deleteScheme" parameterType="int">
+		delete from scheme where scheme_id = #{scheme_id}
+	</delete>
+	<!-- 删除一个体系下的所有指标 -->
+	<delete id="deleteSchemeIndice" parameterType="int">
+		delete from indice where scheme_id=#{scheme_id}
+	</delete>
+	<!-- 删除一个指标 -->
+	<delete id="deleteIndice" parameterType="int">
+		delete from indice where indice_id = #{indice_id}
+	</delete>
+	<!-- 删除一个指标 -->
+	<delete id="deleteChildren" parameterType="int">
+		delete from indice where father_id = #{indice_id}
+	</delete>
+</mapper>

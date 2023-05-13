@@ -24,11 +24,11 @@ public class UserController {
 
 	/**
 	 * 处理登录请求
-	 * @param username
-	 * @param password
+	 * @param username 用户名
+	 * @param password 密码
 	 * @param model
 	 * @return
-	 */
+	 */ 
 	@RequestMapping("/GetLogin.do")
 	public String getLogin(String username, String password, Model model) {
 		UserInfo currentUser = this.userDao.selectUserByNameAndPwd(username, password);
@@ -36,8 +36,8 @@ public class UserController {
 			model.addAttribute("currentUser", JSONObject.toJSON(currentUser));// JavaBean转换为JSON对象，供Vue中使用
 			if (username.equals("admin")) {// 管理员
 				return "administratorPage";
-			} else {// 游客
-				return "userPage";
+			} else {// 普通用户
+				return "indiceManagePage";
 			}
 		} else {
 			model.addAttribute("loginErrorInfo", "用户名或密码错误，请重新登录！");
@@ -47,10 +47,8 @@ public class UserController {
 
 	/**
 	 * 处理注册的请求
-	 * 
-	 * @param user
-	 * @param model
-	 * @return
+	 * @param request
+	 * @param response
 	 * @throws IOException
 	 */
 	@RequestMapping("/GetRegister.do")
@@ -95,8 +93,7 @@ public class UserController {
 
 	/**
 	 * 处理重置密码的请求获取问题信息
-	 * 
-	 * @param userName
+	 * @param username 用户名
 	 * @param response
 	 * @throws IOException
 	 */

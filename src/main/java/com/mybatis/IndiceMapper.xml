@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.IndiceDao">
+	<!-- 查询所有体系信息 -->
+	<select id="selectAllSchemeInfo" parameterType="int" resultType="com.pojo.SchemeInfo">
+		select * from scheme where user_id = #{user_id}
+	</select>
+	<!-- 查询所有算子信息 -->
+	<select id="selectAllOperator" resultType="com.pojo.OperatorInfo">
+		select * from operator
+	</select>
+	<!-- 修改当前用户信息 -->
+	<update id="updateCurrentUserInfo" parameterType="com.pojo.UserInfo">
+		update user
+		set
+		username = #{username},
+		password = #{password},
+		email = #{email}
+		where user_id = #{user_id}
+	</update>
+	<!-- 插入一条体系信息 -->
+	<insert id="insertScheme" parameterType="com.pojo.SchemeInfo"
+		keyProperty="scheme_id" useGeneratedKeys="true">
+		insert into
+		scheme(scheme_name, user_id)
+		values(#{scheme_name}, #{user_id})
+	</insert>
+	<!-- 查询所有体系信息 -->
+	<select id="selectSchemeFuzzy" resultType="com.pojo.SchemeInfo">
+		select * from scheme
+		where scheme_name like #{scheme_name} and user_id = #{user_id}
+	</select>
+	<!-- 修改体系信息 -->
+	<update id="updateSchemeInfo" parameterType="com.pojo.SchemeInfo">
+		update scheme
+		set
+		scheme_name = #{scheme_name}
+		where
+		user_id = #{user_id} and scheme_id = #{scheme_id}
+	</update>
+	<!-- 删除一个体系 -->
+	<delete id="deleteScheme" parameterType="int">
+		delete from scheme where
+		scheme_id = #{scheme_id}
+	</delete>
+	<!-- 获取一个体系的所有指标信息 -->
+	<select id="getSingleSchemeDetailInfo" resultType="com.pojo.IndiceInfo">
+		select indice.* from indice, scheme
+		where scheme.user_id = #{user_id}
+		and scheme.scheme_id = #{scheme_id}
+		and indice.scheme_id = scheme.scheme_id
+	</select>
+	<!-- 删除一个指标 -->
+	<delete id="deleteIndice" parameterType="int">
+		delete from indice where
+		indice_id = #{indice_id}
+	</delete>
+	<!-- 创建一个指标 -->
+	<insert id="insertIndiceInfo" parameterType="com.pojo.IndiceInfo"
+		keyProperty="indice_id" useGeneratedKeys="true">
+		insert into indice(indice_name, indice_weight, indice_value,
+		father_id, operator_id, scheme_id)
+		values(#{indice_name}, #{indice_weight}, #{indice_value}, #{father_id}, #{operator_id}, #{scheme_id})
+	</insert>
+	<!-- 更新一个指标 -->
+	<update id="updateIndiceInfo" parameterType="com.pojo.IndiceInfo">
+		update indice
+		set
+		indice_name = #{indice_name},
+		indice_weight = #{indice_weight},
+		indice_value = #{indice_value},
+		father_id = #{father_id},
+		operator_id = #{operator_id}
+		where indice_id = #{indice_id} and scheme_id = #{scheme_id}
+	</update>
+</mapper>

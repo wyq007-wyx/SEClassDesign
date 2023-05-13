@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.AdministratorDao">
+	<!-- 从用户表中查询所有用户的信息 -->
+	<select id="selectAllUserInfo" resultType="com.pojo.UserInfo">
+		select * from user where username != "admin"
+	</select>
+	<!-- 根据用户名从user表中模糊查询 -->
+	<select id="selectUserFuzzy" parameterType="String" resultType="com.pojo.UserInfo">
+		select * from user where username like #{username}
+	</select>
+	<!-- 注册时判断重名 -->
+	<select id="selectRenamedUsers" parameterType="String" resultType="String">
+		select username from user where username = #{username}
+	</select>
+	<!-- 管理员添加一名用户信息  -->
+	<insert id="addUser" parameterType="com.pojo.UserInfo" keyProperty="user_id" useGeneratedKeys="true">
+		insert into user(username, password, email)
+		values(#{username}, #{password}, #{email})
+	</insert>
+	<!-- 修改用户信息 -->
+	<update id="updateUser" parameterType="com.pojo.UserInfo">
+		update user
+		set username = #{username},
+		password = #{password},
+		email = #{email}
+		where user_id = #{user_id}
+	</update>
+	<!-- 删除用户信息前从question表中删除其问题信息 -->
+	<delete id="deleteQuestionOfUser" parameterType="int">
+		delete from question where user_id = #{user_id}
+	</delete>
+	<!-- 删除用户信息 -->
+	<delete id="deleteUser" parameterType="int">
+		delete from user where user_id = #{user_id}
+	</delete>
+</mapper>
