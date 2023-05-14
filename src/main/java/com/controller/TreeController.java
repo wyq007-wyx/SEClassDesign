@@ -1,7 +1,9 @@
 package com.controller;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -12,14 +14,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.alibaba.fastjson.JSON;
+import com.dao.IndiceDao;
 import com.mysql.fabric.Response;
 import com.pojo.IndiceInfo;
+import com.pojo.SchemeInfo;
 import com.service.TreeService;
 
 @Controller
 public class TreeController {
 	@Resource
 	private TreeService treeService;
+	
+	@Resource
+	private IndiceDao indiceDao;
 	
 	/**
 	 * 处理获取体系树的请求
@@ -97,5 +104,22 @@ public class TreeController {
 		 int ret=treeService.deleteTreeNode(id);
 		 response.setContentType("text/json;charset=utf-8");
 		 response.getWriter().write(JSON.toJSONString(ret));
+	 }
+	 
+	 /**
+	  * 导出体系树
+	  * @param indice_id
+	  * @throws IOException 
+	  */
+	 @RequestMapping("/exportScheme.do")
+	 public void exportScheme(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		 System.out.println("捕获到了exportScheme.do的url请求");
+		 BufferedReader br=request.getReader();
+         String line = br.readLine();
+		 int sid=Integer.parseInt(line);
+		 System.out.println("sid:"+sid);
+		 String jsontree=treeService.getTreeNode(sid);	//获取json串
+		 response.setContentType("text/json;charset=utf-8");
+		 response.getWriter().write(JSON.toJSONString(jsontree));
 	 }
 }

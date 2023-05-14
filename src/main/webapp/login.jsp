@@ -7,7 +7,7 @@
     <title>请登录</title>
     <link href="./css/login.css" rel="stylesheet">
     <!-- 在线引入最新样式 -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./css/element-ui/lib/theme-chalk/index.css">
 </head>
 
 <body>
@@ -155,8 +155,7 @@
     <!-- <script src="js/vue.js"></script> -->
     <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
     <!-- import JavaScript -->
-    <!-- <script src="element-ui/lib/index.js"></script> -->
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="./js/element-ui/lib/index.js"></script>
     <script>
         import Vue from 'vue';
     </script>

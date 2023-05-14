@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -6,6 +6,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<!-- 查询所有体系信息 -->
 	<select id="selectAllSchemeInfo" parameterType="int" resultType="com.pojo.SchemeInfo">
 		select * from scheme where user_id = #{user_id}
+	</select>
+	<!-- 根据体系id查询体系信息 -->
+	<select id="selectSchemeInfoById" parameterType="int" resultType="com.pojo.SchemeInfo">
+		select * from scheme where scheme_id = #{scheme_id}
 	</select>
 	<!-- 查询所有算子信息 -->
 	<select id="selectAllOperator" resultType="com.pojo.OperatorInfo">
