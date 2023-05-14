@@ -10,6 +10,14 @@
         <param-name>contextConfigLocation</param-name>
         <param-value>classpath:applicationContext.xml</param-value>
     </context-param>
+      <!--为了获取项目根路径-->
+    <context-param>
+        <param-name>webAppRootKey</param-name>
+        <param-value>evan.webapp</param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.springframework.web.util.WebAppRootListener</listener-class>
+    </listener>
      
     <!--  Spring 容器启动监听器 -->
     <listener>

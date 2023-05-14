@@ -36,6 +36,9 @@
                     <el-button v-show="pageNo == 1" type="primary" icon="el-icon-edit" style="margin-top: 10px"
                         @click="createNewScheme" plain>
                         创建新体系</el-button>
+                    <el-button v-show="pageNo == 1" type="primary" icon="el-icon-edit" style="margin-top: 10px"
+                        @click="importScheme" plain>
+                        导入体系树</el-button>
                     <!-- 右上角显示用户名，是一个下拉菜单，可以进行修改和退出登录 -->
                     <el-dropdown split-button type="primary" @click="currentUserInfoDialogVisible = true"
                         @command="operateCurrentUser">
@@ -218,6 +221,7 @@
 <!-- import JavaScript -->
 <!-- <script src="element-ui/lib/index.js"></script> -->
 <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="./js/echarts.js"></script>
 <script>
     import Vue from 'vue';
 </script>
@@ -373,14 +377,18 @@
                         url: _this.urlHeader + 'request=createNewScheme',
                         data: data
                     }).then(function (resp) {
-                        console.log("获取到了……\n" + resp.data); //创建成功
-                        //刷新页面
-                        if (resp.data == 1) {
+                        //console.log("resp.data" + resp.data); //创建成功
+                        //打开体系树页面
+                        if (resp.data > 0) {
                             Vue.prototype.$message({
                                 message: '创建成功！',
                                 type: 'success'
                             });
                             _this.getSchemeInfo();
+                            window.open("http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" + resp.data);
+                        }else{
+                            _this.$message.error('错了哦，这是一条错误消息');
+
                         }
                     })
                 }).catch(() => {
@@ -389,6 +397,9 @@
                         message: '取消创建'
                     });
                 });
+            },
+            importScheme(){
+
             },
             //当前用户 点击下拉菜单
             operateCurrentUser(command) {
@@ -484,7 +495,7 @@
                     url: _this.urlHeader + 'request=SingleSchemeDetailInfo',
                     data: data
                 }).then(function (resp) {
-                    console.log('获取到了体系的所有指标信息:\n' + resp.data);
+                    //console.log('获取到了体系的所有指标信息:\n' + resp.data);
                     _this.singleSchemeDetailInfo = resp.data;
                 })
             },
@@ -495,6 +506,7 @@
                 this.indiceForm.scheme_id = this.schemeIDForDisplay;
                 this.innerDrawerVisible = true; //显示内部抽屉
             },
+            
             //点击了修改指标的按钮
             clickChangeIndiceBtn(row) {
                 this.innerDrawerTitle = '修改指标';
@@ -637,7 +649,7 @@
             //以体系树形式展示
             displaySchemeByTree(row) {
                 console.log('展示体系树');
-                window.location.href = "http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" + row.scheme_id;
+                window.open("http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" + row.scheme_id+"&scheme_name=" + row.scheme_name);
             },
             //滑块数值格式化
             formatTooltip(val) {
@@ -648,7 +660,9 @@
                 console.log('当前页' + val);
                 //修改页码
                 this.page.currentPage = val;
-            }
+            },
+
+            
         }
     })
 </script>

@@ -8,6 +8,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <!-- <link href='./bootstrap/css/bootstrap.css' media='all' rel='stylesheet' type='text/css' /> -->
+    <!-- <link rel="stylesheet" href="./css/element-ui/lib/theme-chalk/index.css"> -->
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <style>
         * {
@@ -43,20 +44,19 @@
 
 <body class='contrast-blue'>
     <div id="app">
+        <div style="background-color: rgb(16,12,42); height: 100px; " >
+            <el-button type="primary" icon="el-icon-edit" style="margin: 10px 10px 10px 10px; float: right;width: 150px;"
+                @click="clickExportSchemeJSON" plain>
+                导出JSON</el-button>
+            <el-button type="primary" icon="el-icon-edit" style="margin: 10px 0 10px 0; float: right;width: 150px;"
+                @click="clickExportSchemeImg" plain>
+                导出图片</el-button>
+        </div>
         <!-- 树模块 -->
-        <div id='wrapper'>
+        <div id='wrapper' >
             <section id='content'>
-                <div class="nav-part">
-                    <div class="cur-position risk">
-                        树模型>>编辑
-                    </div>
-                </div>
-                <div class="container-fluid">
-                    <div class="querycontext">
-                    </div>
-                </div>
                 <div class="tree-container">
-                    <div id="main" style="width:100%;height:1000px;"></div>
+                    <div id="main" style="width:100%;height: 700px;;"></div>
                 </div>
             </section>
         </div>
@@ -118,9 +118,10 @@
 <!--资源引入-->
 <script src="js/axios-0.18.0.js"></script>
 <script src='./js/jquery.min.js' type='text/javascript'></script>
-<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.js"></script>
-<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="./js/vue.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.js"></script> -->
+<script src="./js/echarts.js"></script>
+<script src="./js/element-ui/lib/index.js"></script>
 <!----------->
 <script type="text/javascript">
     new Vue({
@@ -129,6 +130,7 @@
             return {
                 //当前体系id
                 scheme_id: ${ param.scheme_id },
+                scheme_name: '',
                 //所有算子
                 ops: [
                     {
@@ -275,7 +277,6 @@
                 var _this = this;
                 myChart.on("contextmenu", function (params) {
                     gloab_param = params;
-                    //console.log(gloab_param);
                     $('#rightMenu').css({
                         'display': 'block',
                         'left': params.event.offsetX + 15,//此处根据自己实际情况调整右键操作菜单显示位置
@@ -363,7 +364,6 @@
             },
             updateTreeNode(node){
                 if (this.currentNode.indice.indice_id == node.indice.indice_id) {
-                    //console.log('找到了');
                     node.indice.indice_name = this.currentNode.indice.indice_name;
                     node.name = this.currentNode.indice.indice_name;
                     node.indice.indice_weight = this.currentNode.indice.indice_weight;
@@ -405,10 +405,8 @@
                     url: _this.urlHeader + 'addTreeNode.do',
                     data: childnode.indice
                 }).then(function (resp) {
-                    //console.log(resp.data);
                     childnode.indice.indice_id = resp.data;
                     _this.addNode(_this.tree_struct, childnode);
-                    //console.log('tree', _this.tree_struct);
                     _this.drawTree();
                     _this.$message({
                             message: '添加节点成功',
@@ -419,8 +417,13 @@
             },
             //删除当前节点
             deleteCurrentNode() {
+                 //隐藏右键菜单
+                 $('#rightMenu').css({
+                    'display': 'none',
+                    'left': '-9999px',
+                    'top': '-9999px'
+                });
                 var _this=this;
-                console.log('sdasad');
                 if(this.currentNode.indice.father_id==-1){
                     //当前是根节点
                     this.$confirm('该节点是根节点,此操作将永久删除该体系, 是否继续?', '提示', {
@@ -439,7 +442,6 @@
                             });
                             window.location.href=_this.urlHeader+"index.jsp";
                         }); 
-                        console.log('ssss');
                     }).catch(() => {
                         this.$message({
                             type: 'info',
@@ -458,7 +460,6 @@
                             method:'get',
                             url:_this.urlHeader+'deleteNode.do?indice_id='+_this.currentNode.indice.indice_id,
                         }).then(function(resp){
-                            console.log('ssss');
                             _this.deleteNode(_this.tree_struct,_this.currentNode);
                             _this.drawTree();
                             _this.$message({
@@ -508,7 +509,6 @@
                             type: 'success'
                         });
                         _this.updateTreeNode(_this.tree_struct);
-                        //console.log(_this.tree_struct);
                         _this.drawTree();
                     } else {
                         this.$message.error('修改失败');
@@ -533,10 +533,128 @@
                     _this.ops = resp.data
                 })
             },
+            clickExportSchemeJSON(){
+                //console.log('获取到了体系树:\n' + resp.data);
+                const fileName = this.scheme_name+".json";
+                // 创建Blob对象
+                var data = JSON.stringify(this.tree_struct);
+                console.log(data);
+                const blob = new Blob([data], { type: "text/plain" });
+
+                // 创建URL对象
+                const url = URL.createObjectURL(blob);
+
+                // 创建链接元素
+                const downloadLink = document.createElement("a");
+                downloadLink.href = url;
+                downloadLink.download = fileName;
+
+                // 模拟单击下载链接
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            },
+            clickExportSchemeImg(){
+                var data = this.tree_struct;
+                var _this = this;
+                var chartDom = document.getElementById('main');
+                var myChart = echarts.init(chartDom, 'dark');
+                var option;
+                myChart.showLoading();//echarts自带的Loading遮罩方法
+                myChart.hideLoading();
+                // data.collapsed = false;
+                // data.children.forEach(function (datum, index) {
+                //     datum.collapsed = false;
+                // });
+                option = {
+                    tooltip: {
+                        show: true,
+                        trigger: 'item',
+                        triggerOn: 'mousemove',
+                        position: "bottom",
+                        textStyle: {
+                            color: "#228EFB",
+                            fontSize: 17
+                        },
+                        extraCssText: 'width:300px;white-space:pre-wrap;',
+                        formatter: function (params, ticket, callback) {
+                            var tsxx = params.data.describes == "" || params.data.describes == null ? params.data.name : params.data.describes;
+                            return tsxx;
+                        }
+                    },
+                    series: [
+                        {
+                            type: 'tree',
+                            data: [data],
+                            top: 'middle',
+                            left: 'center',
+                            // bottom: '1%',
+                            // right: '15%',
+                            symbolSize: 15,
+                            itemStyle: {
+                                color: '#228EFB',
+                            },
+                            lineStyle: {
+                                color: '#DDD',
+                            },
+                            label: {
+                                color: "#FFF",
+                                position: 'left',
+                                verticalAlign: 'middle',
+                                align: 'right',
+                                fontSize: 18
+                            },
+                            leaves: {
+                                label: {
+                                    position: 'right',
+                                    verticalAlign: 'middle',
+                                    align: 'left'
+                                }
+                            },
+                            emphasis: {
+                                focus: 'descendant'
+                            },
+                            edgeForkPosition: "72%",
+                            roam: true,//鼠标缩放，拖拽整颗树
+                            expandAndCollapse: true,
+                            animationDuration: 550,
+                            animationDurationUpdate: 750
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+                var img = new Image();
+                img.src = myChart.getDataURL({
+                    type: "png",
+                    pixelRatio: 1, //放大2倍
+                    backgroundColor: "#fff",
+                });
+                img.onload = function () {
+                    var canvas = document.createElement("canvas");
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    var ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+                    var dataURL = canvas.toDataURL("image/png");
+                
+                    var a = document.createElement("a");
+                    a.download = _this.scheme_name+".png";
+                    
+                    console.log(_this.scheme_name);
+                    // 将生成的URL设置为a.href属性
+                    a.href = dataURL;
+                    // 触发a的单击事件
+                    a.click();
+                    a.remove();
+
+                };
+            }
         },
         mounted() {
             this.loadTreeStruct();
             this.loadAllOperator();
+            this.scheme_name = '${ param.scheme_name }';
+            //console.log(this.scheme_name);
         },
     });
 </script>

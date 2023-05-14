@@ -104,8 +104,19 @@ public class IndiceController {
 		String line = br.readLine();
 		SchemeInfo scheme = JSON.parseObject(line, SchemeInfo.class);// 把JSON字符串解析为JavaBean
 		int num = this.indiceDao.insertScheme(scheme);
+		//创建该体系的根节点
+		IndiceInfo root = new IndiceInfo();
+		root.setFather_id(-1);
+		root.setScheme_id(scheme.getScheme_id());
+		indiceDao.insertIndiceInfo(root);
+		
 		response.setContentType("text/json;charset=utf-8");
-		response.getWriter().write(JSON.toJSONString(num));
+		if(num>0) {
+			response.getWriter().write(JSON.toJSONString(scheme.getScheme_id()));
+		}else {
+			response.getWriter().write(JSON.toJSONString(num));
+		}
+		
 	}
 
 	/**
