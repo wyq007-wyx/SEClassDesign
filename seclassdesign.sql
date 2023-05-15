@@ -1,24 +1,29 @@
 /*
-Navicat MySQL Data Transfer
+ Navicat Premium Data Transfer
 
-Source Server         : MySQL8.0.31
-Source Server Version : 80031
-Source Host           : localhost:3306
-Source Database       : seclassdesign
+ Source Server         : mysql8
+ Source Server Type    : MySQL
+ Source Server Version : 80031
+ Source Host           : localhost:3306
+ Source Schema         : seclassdesign
 
-Target Server Type    : MYSQL
-Target Server Version : 80031
-File Encoding         : 65001
+ Target Server Type    : MySQL
+ Target Server Version : 80031
+ File Encoding         : 65001
+
 
 Date: 2023-05-15 10:18:57
+
 */
 
-SET FOREIGN_KEY_CHECKS=0;
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- Table structure for indice
 -- ----------------------------
 DROP TABLE IF EXISTS `indice`;
+
 CREATE TABLE `indice` (
   `indice_id` int NOT NULL AUTO_INCREMENT,
   `indice_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
@@ -34,9 +39,11 @@ CREATE TABLE `indice` (
   CONSTRAINT `indice_ibfk_2` FOREIGN KEY (`operator_id`) REFERENCES `operator` (`operator_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=169 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
 
+
 -- ----------------------------
 -- Records of indice
 -- ----------------------------
+
 INSERT INTO `indice` VALUES ('1', '总成绩', '13', '0', '-1', '1', '1');
 INSERT INTO `indice` VALUES ('2', '平时成绩', '54', '0', '1', '1', '1');
 INSERT INTO `indice` VALUES ('3', '期中成绩', '44', '0', '1', '1', '1');
@@ -69,32 +76,33 @@ INSERT INTO `indice` VALUES ('166', null, '0', '0', '164', null, '40');
 INSERT INTO `indice` VALUES ('167', null, '0', '0', '163', null, '40');
 INSERT INTO `indice` VALUES ('168', null, '0', '0', '167', null, '40');
 
+
 -- ----------------------------
 -- Table structure for operator
 -- ----------------------------
 DROP TABLE IF EXISTS `operator`;
-CREATE TABLE `operator` (
+CREATE TABLE `operator`  (
   `operator_id` int NOT NULL AUTO_INCREMENT,
   `operator_description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`operator_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of operator
 -- ----------------------------
-INSERT INTO `operator` VALUES ('1', '+');
-INSERT INTO `operator` VALUES ('2', '-');
-INSERT INTO `operator` VALUES ('3', '*');
-INSERT INTO `operator` VALUES ('4', '/');
-INSERT INTO `operator` VALUES ('5', 'max');
-INSERT INTO `operator` VALUES ('6', 'min');
-INSERT INTO `operator` VALUES ('7', 'avg');
+INSERT INTO `operator` VALUES (1, '+');
+INSERT INTO `operator` VALUES (2, '-');
+INSERT INTO `operator` VALUES (3, '*');
+INSERT INTO `operator` VALUES (4, '/');
+INSERT INTO `operator` VALUES (5, 'max');
+INSERT INTO `operator` VALUES (6, 'min');
+INSERT INTO `operator` VALUES (7, 'avg');
 
 -- ----------------------------
 -- Table structure for question
 -- ----------------------------
 DROP TABLE IF EXISTS `question`;
-CREATE TABLE `question` (
+CREATE TABLE `question`  (
   `question_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `question1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
@@ -106,6 +114,7 @@ CREATE TABLE `question` (
   CONSTRAINT `question_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
 
+
 -- ----------------------------
 -- Records of question
 -- ----------------------------
@@ -115,7 +124,7 @@ INSERT INTO `question` VALUES ('2', '5', '您的父亲的姓名是？', 'xxx', '
 -- Table structure for scheme
 -- ----------------------------
 DROP TABLE IF EXISTS `scheme`;
-CREATE TABLE `scheme` (
+CREATE TABLE `scheme`  (
   `scheme_id` int NOT NULL AUTO_INCREMENT COMMENT '体系id',
   `scheme_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '体系名字',
   `user_id` int NOT NULL COMMENT '用户id',
@@ -124,6 +133,7 @@ CREATE TABLE `scheme` (
   KEY `user_id` (`user_id`) USING BTREE,
   CONSTRAINT `scheme_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
+
 
 -- ----------------------------
 -- Records of scheme
@@ -141,7 +151,7 @@ INSERT INTO `scheme` VALUES ('40', '2023期末成绩', '2', '1');
 -- Table structure for user
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
+CREATE TABLE `user`  (
   `user_id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
@@ -150,6 +160,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `username` (`username`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
 
+
 -- ----------------------------
 -- Records of user
 -- ----------------------------
@@ -157,3 +168,4 @@ INSERT INTO `user` VALUES ('1', 'admin', '123456', '2320876714@qq.com');
 INSERT INTO `user` VALUES ('2', '齐胜震', 'qsz', '3056059732@qq.com');
 INSERT INTO `user` VALUES ('3', 'xxx', '123456', '2320876714@qq.com');
 INSERT INTO `user` VALUES ('5', '熊睿', '123456', '2320876714@qq.com');
+
