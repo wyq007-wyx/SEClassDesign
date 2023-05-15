@@ -37,8 +37,6 @@ public class TreeController {
 	public String getSystemTree(String scheme_id, Model model) throws IOException {
 		int sid=Integer.parseInt(scheme_id);
 		String jsontree=treeService.getTreeNode(sid);
-		//测试输出
-		System.out.println(jsontree);
 		model.addAttribute("jsontree", jsontree);
 		return "indextree";
 	}
@@ -91,7 +89,7 @@ public class TreeController {
 	 public String deleteSystemTree(String scheme_id) {
 		 int sid=Integer.parseInt(scheme_id);//获取体系id
 		 int deletenums=treeService.deleteTreeAndInDice(sid);
-		 return "index";
+		 return "indiceManagePage";
 	 }
 	 /**
 	  * 删除体系树上的某个节点及其子节点
@@ -100,7 +98,7 @@ public class TreeController {
 	  */
 	 @RequestMapping("/deleteNode.do")
 	 public void deleteNode(String indice_id, HttpServletResponse response) throws IOException {
-		 int id=Integer.parseInt(indice_id);//获取体系id
+		 int id=Integer.parseInt(indice_id);//获取结点id
 		 int ret=treeService.deleteTreeNode(id);
 		 response.setContentType("text/json;charset=utf-8");
 		 response.getWriter().write(JSON.toJSONString(ret));

@@ -15,6 +15,8 @@ public interface TreeDao {
 	IndiceInfo selectRoot(@Param("scheme_id")int scheme_id,@Param("root_id")int indice_id);
 	//查找子节点
 	List<IndiceInfo> selectIndiceBySystemIdAndFatherId(@Param("scheme_id")int scheme_id,@Param("father_id")int father_id);
+	//真正的查找子节点
+	List<IndiceInfo> selectChildrenByFatherId(int father_id);
 	//添加子节点
 	int addTreeNode(IndiceInfo indiceInfo);
 	//更新节点

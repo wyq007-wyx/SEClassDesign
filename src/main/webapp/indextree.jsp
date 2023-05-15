@@ -44,11 +44,14 @@
 
 <body class='contrast-blue'>
     <div id="app">
-        <div style="background-color: rgb(16,12,42); height: 100px; " >
-            <el-button type="primary" icon="el-icon-edit" style="margin: 10px 10px 10px 10px; float: right;width: 150px;"
+        <div style="background-color: rgb(16,12,42); height: 15vh; " >
+            <el-button type="primary" style="margin: 10px 10px 10px 10px; float: right; width: 150px;"
+                @click="backToIndiceManagePage" plain>
+                退出</el-button>
+            <el-button type="primary" icon="el-icon-edit" style="margin: 10px 0 10px 10px; float: right; width: 150px;"
                 @click="clickExportSchemeJSON" plain>
                 导出JSON</el-button>
-            <el-button type="primary" icon="el-icon-edit" style="margin: 10px 0 10px 0; float: right;width: 150px;"
+            <el-button type="primary" icon="el-icon-edit" style="margin: 10px 0 10px 0; float: right; width: 150px;"
                 @click="clickExportSchemeImg" plain>
                 导出图片</el-button>
         </div>
@@ -56,7 +59,7 @@
         <div id='wrapper' >
             <section id='content'>
                 <div class="tree-container">
-                    <div id="main" style="width:100%;height: 700px;;"></div>
+                    <div id="main" style="width:100%; height: 85vh;"></div>
                 </div>
             </section>
         </div>
@@ -64,7 +67,7 @@
         <div id="rightMenu" class="menu" style="display:none;">
             <ul>
                 <li>
-                    <el-button type="primary" @click="editCurrentNode">编辑当前节点</el-button>
+                    <el-button v-if="isInstance == 0 ? false : true" type="primary" @click="editCurrentNode">编辑当前节点</el-button>
                 </li>
                 <li>
                     <el-button type="primary" @click="addChildNode">增加子节点</el-button>
@@ -118,10 +121,10 @@
 <!--资源引入-->
 <script src="js/axios-0.18.0.js"></script>
 <script src='./js/jquery.min.js' type='text/javascript'></script>
-<script src="./js/vue.js"></script>
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
 <!-- <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.js"></script> -->
 <script src="./js/echarts.js"></script>
-<script src="./js/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
 <!----------->
 <script type="text/javascript">
     new Vue({
@@ -131,6 +134,7 @@
                 //当前体系id
                 scheme_id: ${ param.scheme_id },
                 scheme_name: '',
+                isInstance: 0,
                 //所有算子
                 ops: [
                     {
@@ -275,12 +279,14 @@
                 $("#main").bind("contextmenu", function () { return false; });//防止默认菜单弹出（查看图像,图像另存为等）
                 var gloab_param = null;
                 var _this = this;
+                var yOffset = this.isInstance == 0 ? 20 : 60;
                 myChart.on("contextmenu", function (params) {
+                	console.log(yOffset);
                     gloab_param = params;
                     $('#rightMenu').css({
                         'display': 'block',
                         'left': params.event.offsetX + 15,//此处根据自己实际情况调整右键操作菜单显示位置
-                        'top': params.event.offsetY - 110
+                        'top': params.event.offsetY - yOffset
                     });
                     _this.currentNode = params.data;
                 });
@@ -440,7 +446,8 @@
                                 type: 'success',
                                 message: '删除成功!'
                             });
-                            window.location.href=_this.urlHeader+"index.jsp";
+                            window.location.href=_this.urlHeader+"indiceManagePage.jsp";
+                            // window.close();
                         }); 
                     }).catch(() => {
                         this.$message({
@@ -533,6 +540,7 @@
                     _this.ops = resp.data
                 })
             },
+            //点击导出体系树JSON
             clickExportSchemeJSON(){
                 //console.log('获取到了体系树:\n' + resp.data);
                 const fileName = this.scheme_name+".json";
@@ -554,6 +562,7 @@
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
             },
+
             clickExportSchemeImg(){
                 var data = this.tree_struct;
                 var _this = this;
@@ -648,13 +657,16 @@
                     a.remove();
 
                 };
+            },
+            backToIndiceManagePage(){
+                window.location.href="http://localhost:2008/SEClassDesign/indiceManagePage.jsp";
             }
         },
         mounted() {
+            this.scheme_name = '${ param.scheme_name }';
+            this.isInstance = ${ param.isInstance };
             this.loadTreeStruct();
             this.loadAllOperator();
-            this.scheme_name = '${ param.scheme_name }';
-            //console.log(this.scheme_name);
         },
     });
 </script>

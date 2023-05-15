@@ -12,6 +12,17 @@ public class IndiceInfo {
 	
 	
 	
+	public IndiceInfo() {
+	}
+	public IndiceInfo(String indice_name, Double indice_weight, Double indice_value, Integer father_id,
+			Integer operator_id, int scheme_id) {
+		this.indice_name = indice_name;
+		this.indice_weight = indice_weight;
+		this.indice_value = indice_value;
+		this.father_id = father_id;
+		this.operator_id = operator_id;
+		this.scheme_id = scheme_id;
+	}
 	public Integer getIndice_id() {
 		return indice_id;
 	}

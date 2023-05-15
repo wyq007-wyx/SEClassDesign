@@ -15,17 +15,17 @@
         <el-container style="height: 100%; border: 1px solid #eee">
             <!-- 左侧边，导航栏 -->
             <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-                <el-menu default-active="1-1" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b"
-                    @select="switchPage">
+                <el-menu :default-active="pageNo" background-color="#545c64" text-color="#fff"
+                    active-text-color="#ffd04b" @select="switchPage">
                     <el-submenu index="1">
                         <template slot="title"><i class="el-icon-message"></i>列表</template>
-                        <el-menu-item index="1-1">所有列表信息</el-menu-item>
+                        <el-menu-item index="1-1">所有体系模板</el-menu-item>
+                        <el-menu-item index="1-2">所有体系实例</el-menu-item>
                     </el-submenu>
                     <el-submenu index="2">
                         <template slot="title"><i class="el-icon-menu"></i>体系树</template>
                         <el-menu-item index="2-1">创建体系树</el-menu-item>
                     </el-submenu>
-                    <el-menu-item index="3"><i class="el-icon-video-play"></i>运行</el-menu-item>
                 </el-menu>
             </el-aside>
             <!-- 右半边 -->
@@ -33,10 +33,10 @@
                 <!-- 头 -->
                 <el-header style="font-size: 12px;">
                     <!-- 创建新体系的按钮 -->
-                    <el-button v-show="pageNo == 1" type="primary" icon="el-icon-edit" style="margin-top: 10px"
+                    <el-button v-show="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
                         @click="createNewScheme" plain>
                         创建新体系</el-button>
-                    <el-button v-show="pageNo == 1" type="primary" icon="el-icon-edit" style="margin-top: 10px"
+                    <el-button v-show="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
                         @click="importScheme" plain>
                         导入体系树</el-button>
                     <!-- 右上角显示用户名，是一个下拉菜单，可以进行修改和退出登录 -->
@@ -92,12 +92,12 @@
                         </span>
                     </el-dialog>
                 </el-header>
-
-                <el-main v-if="pageNo==1">
+                <!-- 所有模板信息 -->
+                <el-main v-if="pageNo=='1-1'">
                     <!-- 查询表单 -->
                     <el-form :inline="true" class="demo-form-inline">
-                        <el-form-item label="体系名称">
-                            <el-input v-model="schemeNameForQuery" placeholder="请输入体系名称"></el-input>
+                        <el-form-item label="体系模板名称">
+                            <el-input v-model="schemeNameForQuery" placeholder="请输入体系模板名称"></el-input>
                         </el-form-item>
                         <el-form-item>
                             <el-button icon="el-icon-search" type="primary" @click="fuzzyQueryBySchemeName">模糊查询
@@ -108,9 +108,9 @@
                     <el-table height="66vh"
                         :data="schemeTableData.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)">
                         <el-table-column type="index" align="center"></el-table-column>
-                        <el-table-column prop="scheme_id" label="体系号" align="center">
+                        <el-table-column prop="scheme_id" label="模板号" align="center">
                         </el-table-column>
-                        <el-table-column prop="scheme_name" label="体系名称" align="center">
+                        <el-table-column prop="scheme_name" label="模板名称" align="center">
                         </el-table-column>
                         <el-table-column label="操作" align="center" fixed="right">
                             <template slot-scope="scope">
@@ -119,6 +119,8 @@
                                 <el-button type="danger" size="mini" @click="deleteScheme(scope.row)" plain>删除
                                 </el-button>
                                 <el-button size="mini" @click="displaySchemeByTree(scope.row)" plain>体系树
+                                </el-button>
+                                <el-button size="mini" @click="createInstanceByTemplate(scope.row)" plain>实例化
                                 </el-button>
                             </template>
                         </el-table-column>
@@ -199,11 +201,121 @@
                         </el-drawer>
                     </el-drawer>
                 </el-main>
+                <!-- 所有体系实例 -->
+                <el-main v-else-if="pageNo=='1-2'">
+                    <!-- 查询表单 -->
+                    <el-form :inline="true" class="demo-form-inline">
+                        <el-form-item label="体系实例名称">
+                            <el-input v-model="schemeNameForQuery" placeholder="请输入体系实例名称"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button icon="el-icon-search" type="primary" @click="fuzzyQueryBySchemeName">模糊查询
+                            </el-button>
+                        </el-form-item>
+                    </el-form>
+                    <!-- 显示所有体系实例信息 -->
+                    <el-table height="66vh"
+                        :data="schemeTableData.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)">
+                        <el-table-column type="index" align="center"></el-table-column>
+                        <el-table-column prop="scheme_id" label="实例号" align="center">
+                        </el-table-column>
+                        <el-table-column prop="scheme_name" label="实例名称" align="center">
+                        </el-table-column>
+                        <el-table-column label="操作" align="center" fixed="right">
+                            <template slot-scope="scope">
+                                <el-button size="mini" @click="displayScheme(scope.row)" plain>详情</el-button>
+                                <el-button size="mini" @click="changeScheme(scope.row)" plain>修改</el-button>
+                                <el-button type="danger" size="mini" @click="deleteScheme(scope.row)" plain>删除
+                                </el-button>
+                                <el-button size="mini" @click="displaySchemeByTree(scope.row)" plain>体系树
+                                </el-button>
+                                <el-button size="mini" @click="clickExecuteBtn(scope.row)" plain>运行
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <!-- 点击查看体系详情，展开右侧抽屉 -->
+                    <el-drawer v-bind:title="schemeDrawerTitle" :visible.sync="schemeDetailDrawerVisible"
+                        direction="rtl" size="50%">
+                        <!-- 创建新指标的按钮 -->
+                        <el-button type="primary" icon="el-icon-edit" style="margin: 0 0 10px 10px;"
+                            @click="clickAddIndiceBtn" plain>
+                            创建新指标</el-button>
+                        <!-- 显示所有指标信息 -->
+                        <el-table :data="singleSchemeDetailInfo" height="90%">
+                            <el-table-column type="index" align="center"></el-table-column>
+                            <el-table-column prop="indice_id" label="指标id" align="center">
+                            </el-table-column>
+                            <el-table-column prop="indice_name" label="指标名称" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.indice_name) == 'undefined' ? '无' : scope.row.indice_name }}</template>
+                            </el-table-column>
+                            <el-table-column prop="indice_weight" label="指标权重" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.indice_weight) == 'undefined' ? '无' : scope.row.indice_weight }}</template>
+                            </el-table-column>
+                            <el-table-column prop="father_id" label="父节点id" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.father_id) == 'undefined' ? '无' : scope.row.father_id }}</template>
+                            </el-table-column>
+                            <el-table-column prop="operator_id" label="算子" align="center">
+                                <template
+                                    slot-scope="scope">{{ typeof(scope.row.operator_id) == 'undefined' ? '无' : scope.row.operator_id }}</template>
+                            </el-table-column>
+                            <el-table-column label="操作" align="center" fixed="right">
+                                <template slot-scope="scope">
+                                    <el-button type="primary" icon="el-icon-edit" size="mini"
+                                        @click="clickChangeIndiceBtn(scope.row)" circle>
+                                    </el-button>
+                                    <el-button type="danger" icon="el-icon-delete" size="mini"
+                                        @click="clickDeleteIndiceBtn(scope.row)" circle>
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <!-- 内部抽屉：添加、修改指标 -->
+                        <el-drawer v-bind:title="innerDrawerTitle" :append-to-body="true" :show-close="false"
+                            :visible.sync="innerDrawerVisible">
+                            <div>
+                                <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="120px">
+                                    <el-form-item label="指标名称" prop="indice_name">
+                                        <el-input v-model="indiceForm.indice_name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="指标权重" prop="indice_weight">
+                                        <el-slider v-model="indiceForm.indice_weight" :format-tooltip="formatTooltip">
+                                        </el-slider>
+                                    </el-form-item>
+                                    <el-form-item label="父节点id" prop="father_id">
+                                        <el-input v-model="indiceForm.father_id"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="算子" prop="operator_id">
+                                        <el-select v-model="indiceForm.operator_id" placeholder="请选择算子">
+                                            <el-option v-for="item in operators" :label="item.operator_description"
+                                                :value="item.operator_id" :key="item.operator_id">
+                                            </el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="所属体系id" prop="scheme_id">
+                                        <el-input v-model="indiceForm.scheme_id" disabled></el-input>
+                                    </el-form-item>
+                                </el-form>
+                                <div style="position: fixed; bottom: 0; width: 100%; padding-bottom: 20px;">
+                                    <el-button @click="innerDrawerVisible = false"
+                                        style="float: left; width: 12vw; margin-left: 2vw;">取 消</el-button>
+                                    <el-button type="primary" @click="addOrChangeIndice"
+                                        style="float: left; width: 12vw; margin-left: 2vw;">
+                                        确 定</el-button>
+                                </div>
+                            </div>
+                        </el-drawer>
+                    </el-drawer>
+                </el-main>
+
                 <el-main v-else>
 
                 </el-main>
                 <!--分页工具条-->
-                <el-footer v-if="pageNo==1">
+                <el-footer v-if="pageNo=='1-1' || pageNo=='1-2'">
                     <div class="block">
                         <el-pagination @current-change="handleCurrentChange" :current-page="page.currentPage"
                             :page-size="page.pageSize" layout="total, prev, pager, next, jumper" :total="page.total">
@@ -221,7 +333,7 @@
 <!-- import JavaScript -->
 <!-- <script src="element-ui/lib/index.js"></script> -->
 <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-<script src="./js/echarts.js"></script>
+<script src="js/echarts.js"></script>
 <script>
     import Vue from 'vue';
 </script>
@@ -230,7 +342,7 @@
         el: '#app',
         data() {
             return {
-                pageNo: 1,
+                pageNo: '1-1',
                 currentUser: {},
                 urlHeader: 'http://localhost:2008/SEClassDesign/RequestFromIndiceManagePage.do?',
                 currentUserInfoDialogVisible: false, //是否显示当前用户详细信息的对话框
@@ -275,20 +387,20 @@
         },
         mounted() { //HTML页面渲染成功，就获取所有用户的信息    
             this.currentUser = ${sessionScope.currentUser}; //从session中获取当前正在登录的对象
-            this.getSchemeInfo();
+            this.getSchemeInfo(0);
             this.getAllOperator(); //获取所有的算子
         },
         methods: {
             //页面切换
             switchPage(index) {
-                if (index == '1-1') { //列表
-                    this.pageNo = 1;
-                    this.getSchemeInfo();
+                this.pageNo = index;
+                if (index == '1-1') { //所有的体系模板
+                    this.getSchemeInfo(0);
+                } else if (index == '1-2') { //所有的体系实例
+                    this.getSchemeInfo(1);
                 } else if (index == '2-1') { //创建体系树
-                    this.pageNo = 2;
                     this.createNewScheme();
                 } else { //运行
-                    this.pageNo = 3;
                     const h = this.$createElement;
                     var _this = this;
                     this.$msgbox({
@@ -344,12 +456,12 @@
                 })
             },
             //获取所有体系信息
-            getSchemeInfo() {
+            getSchemeInfo(isInstance) {
                 var _this = this;
                 axios({
                     method: 'get',
                     url: _this.urlHeader + 'request=SchemeInfoForDisplay&user_id=' + this.currentUser
-                        .user_id
+                        .user_id + '&isInstance=' + isInstance
                 }).then(function (resp) {
                     console.log('获取到了所有体系信息:\n' + resp.data);
                     _this.schemeTableData = resp.data;
@@ -369,7 +481,8 @@
                 }) => {
                     var data = {
                         user_id: _this.currentUser.user_id,
-                        scheme_name: value
+                        scheme_name: value,
+                        isInstance: 0
                     };
                     //创建新体系
                     axios({
@@ -384,10 +497,12 @@
                                 message: '创建成功！',
                                 type: 'success'
                             });
-                            _this.getSchemeInfo();
-                            window.open("http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" + resp.data);
-                        }else{
-                            _this.$message.error('错了哦，这是一条错误消息');
+                            _this.getSchemeInfo(0);
+                            window.location.href =
+                                "http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" +
+                                resp.data;
+                        } else {
+                            _this.$message.error('创建失败！可能存在同名体系');
 
                         }
                     })
@@ -398,7 +513,7 @@
                     });
                 });
             },
-            importScheme(){
+            importScheme() {
 
             },
             //当前用户 点击下拉菜单
@@ -456,11 +571,12 @@
                 console.log("正在从后端获取数据");
                 var url = this.urlHeader + 'request=fuzzyQueryBySchemeName';
                 var _this = this;
+                var isInstance = this.pageNo == '1-1' ? 0 : 1;
                 axios({
                     method: "post",
                     url: url,
-                    data: "scheme_name=" + _this.schemeNameForQuery + '&user_id=' + _this.currentUser
-                        .user_id
+                    data: "scheme_name=" + _this.schemeNameForQuery + '&user_id=' + _this.currentUser +
+                        '&isInstance=' + isInstance
                 }).then(function (resp) {
                     console.log("获取到了……\n" + resp.data);
                     _this.schemeTableData = resp.data;
@@ -469,11 +585,11 @@
                     console.log(len);
                     if (len > 0) {
                         Vue.prototype.$message({
-                            message: '共查询到' + len + '条体系记录',
+                            message: '共查询到' + len + '条记录',
                             type: 'success'
                         });
                     } else {
-                        Vue.prototype.$message.error('没有查询到任何体系记录');
+                        Vue.prototype.$message.error('没有查询到任何记录');
                     }
                 })
             },
@@ -506,7 +622,7 @@
                 this.indiceForm.scheme_id = this.schemeIDForDisplay;
                 this.innerDrawerVisible = true; //显示内部抽屉
             },
-            
+
             //点击了修改指标的按钮
             clickChangeIndiceBtn(row) {
                 this.innerDrawerTitle = '修改指标';
@@ -546,26 +662,46 @@
             //点击了删除指标的按钮
             clickDeleteIndiceBtn(row) {
                 var _this = this;
-                Vue.prototype.$confirm('此操作将永久删除这个指标, 是否继续?', '提示', {
+                var tips, url, data;
+                var callback;
+                if (row.father_id == -1) {
+                    callback = 0;
+                    tips = '该节点是根节点,此操作将永久删除该体系, 是否继续?';
+                    url = 'http://localhost:2008/SEClassDesign/deleteSystemTree.do';
+                    data = 'scheme_id=' + row.scheme_id;
+                } else {
+                    callback = 1;
+                    tips = '此操作将永久删除该节点及其子节点, 是否继续?';
+                    url = 'http://localhost:2008/SEClassDesign/deleteNode.do';
+                    data = 'indice_id=' + row.indice_id;
+                }
+                Vue.prototype.$confirm(tips, '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => { //点击了确定
                     //删除一个指标
-                    var data = 'indice_id=' + row.indice_id;
+                    console.log("url是" + url);
                     axios({
                         method: "post",
-                        url: _this.urlHeader + 'request=deleteIndice',
+                        url: url,
                         data: data
                     }).then(function (resp) {
-                        console.log("获取到了……\n" + resp.data); //删除成功
-                        //刷新页面
-                        if (resp.data == 1) {
+                        if (callback == 1) {
+                            console.log("获取到了……\n" + resp.data); //删除成功
+                            //刷新页面
                             Vue.prototype.$message({
                                 message: '删除成功！',
                                 type: 'success'
                             });
                             _this.getSingleSchemeDetailInfo(row.scheme_id);
+                        } else {
+                            Vue.prototype.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                            _this.schemeDetailDrawerVisible = false;//关闭外部抽屉
+                            _this.getSchemeInfo(1);//刷新页面
                         }
                     })
                 }).catch(() => { //点击了取消
@@ -604,7 +740,7 @@
                                 message: '修改成功！',
                                 type: 'success'
                             });
-                            _this.getSchemeInfo();
+                            _this.getSchemeInfo(0);
                         }
                     })
                 }).catch(() => {
@@ -636,7 +772,7 @@
                                 message: '删除成功！',
                                 type: 'success'
                             });
-                            _this.getSchemeInfo();
+                            _this.getSchemeInfo(_this.pageNo == '1-1' ? 0 : 1);
                         }
                     })
                 }).catch(() => { //点击了取消
@@ -649,7 +785,58 @@
             //以体系树形式展示
             displaySchemeByTree(row) {
                 console.log('展示体系树');
-                window.open("http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" + row.scheme_id+"&scheme_name=" + row.scheme_name);
+                var isInstance = this.pageNo == '1-1' ? 0 : 1;
+                window.location.href = "http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" + row
+                    .scheme_id + "&scheme_name=" + row.scheme_name + '&isInstance=' + isInstance;
+            },
+            //根据模板创建实例
+            createInstanceByTemplate(row) {
+                var data = {
+                    scheme_id: row.scheme_id,
+                    user_id: this.currentUser.user_id,
+                    scheme_name: '',
+                    isInstance: 1
+                };
+                var _this = this;
+                this.$prompt('请输入体系实例名称', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,20}$/,
+                    inputErrorMessage: '体系实例名称格式不正确'
+                }).then(({
+                    value
+                }) => {
+                    data.scheme_name = value;
+                    //创建新体系实例
+                    axios({
+                        method: "post",
+                        url: _this.urlHeader + 'request=createSchemeInstance',
+                        data: data
+                    }).then(function (resp) {
+                        //console.log("resp.data" + resp.data); //创建成功
+                        //打开体系树页面
+                        if (resp.data > 0) {
+                            Vue.prototype.$message({
+                                message: '创建体系实例成功！',
+                                type: 'success'
+                            });
+                            _this.getSchemeInfo(1);
+                            _this.pageNo = '1-2';
+                        } else {
+                            _this.$message.error('创建失败！可能存在同名体系实例');
+
+                        }
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '取消创建'
+                    });
+                });
+            },
+            //点击运行按钮
+            clickExecuteBtn(row) {
+
             },
             //滑块数值格式化
             formatTooltip(val) {
@@ -662,7 +849,7 @@
                 this.page.currentPage = val;
             },
 
-            
+
         }
     })
 </script>

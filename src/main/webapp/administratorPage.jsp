@@ -5,12 +5,9 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>用户管理</title>
+    <link rel="stylesheet" href="./css/administratorPage.css">
     <!-- 在线引入最新样式 -->
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <!-- 引入本地资源 -->
-    <!-- <link rel="stylesheet" href="./css/element-ui/lib/theme-chalk/index.css"> -->
-    
-    <link rel="stylesheet" href="./css/administratorPage.css">
 </head>
 
 <body>
@@ -161,10 +158,10 @@
 <script src="js/axios-0.18.0.js"></script>
 <!-- import Vue before Element -->
 <!-- <script src="js/vue.js"></script> -->
-<script src="./js/vue.js"></script>
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
 <!-- import JavaScript -->
 <!-- <script src="element-ui/lib/index.js"></script> -->
-<script src="./js/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
 <script>
     import Vue from 'vue';
 </script>
