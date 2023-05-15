@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.alibaba.fastjson.JSON;
 import com.dao.IndiceDao;
+import com.dao.TreeDao;
 import com.pojo.UserInfo;
 import com.pojo.IndiceInfo;
 import com.pojo.OperatorInfo;
@@ -22,18 +23,20 @@ import com.pojo.SchemeInfo;
 public class IndiceController {
 	@Autowired
 	private IndiceDao indiceDao;
-
+	@Autowired
+	private TreeDao treeDao;
+	
 	/**
 	 * 获取所有的体系信息
-	 * 
-	 * @param user_id  用户id
+	 * @param user_id 用户id
+	 * @param isInstance 0：模板；1：实例
 	 * @param response
 	 * @throws IOException
 	 */
 	@RequestMapping(params = "request=SchemeInfoForDisplay")
-	public void getAllSchemeInfo(String user_id, HttpServletResponse response) throws IOException {
+	public void getAllSchemeInfo(String user_id, String isInstance, HttpServletResponse response) throws IOException {
 		try {
-			List<SchemeInfo> data = this.indiceDao.selectAllSchemeInfo(Integer.parseInt(user_id));
+			List<SchemeInfo> data = this.indiceDao.selectAllSchemeInfo(Integer.parseInt(user_id), Integer.parseInt(isInstance));
 			response.setContentType("text/json;charset=utf-8");
 			response.getWriter().write(JSON.toJSONString(data));
 		} catch (NumberFormatException e) {
@@ -103,22 +106,60 @@ public class IndiceController {
 		BufferedReader br = request.getReader();
 		String line = br.readLine();
 		SchemeInfo scheme = JSON.parseObject(line, SchemeInfo.class);// 把JSON字符串解析为JavaBean
-		int num = this.indiceDao.insertScheme(scheme);
-		//创建该体系的根节点
-		IndiceInfo root = new IndiceInfo();
-		root.setFather_id(-1);
-		root.setScheme_id(scheme.getScheme_id());
-		indiceDao.insertIndiceInfo(root);
-		
+		System.out.println(scheme.getScheme_name());
+		List<SchemeInfo> list = this.indiceDao.selectRenamedScheme(scheme);//判断该用户下是否存在同名体系的模板或实例
+		int num = 0;
+		if(list.size() == 0) {//若没有同名体系
+			num = this.indiceDao.insertScheme(scheme);//创建体系
+			//创建该体系的根节点
+			IndiceInfo root = new IndiceInfo();
+			root.setFather_id(-1);
+			root.setScheme_id(scheme.getScheme_id());
+			indiceDao.insertIndiceInfo(root);
+		}
 		response.setContentType("text/json;charset=utf-8");
-		if(num>0) {
+		if(num > 0) {
 			response.getWriter().write(JSON.toJSONString(scheme.getScheme_id()));
 		}else {
 			response.getWriter().write(JSON.toJSONString(num));
 		}
-		
 	}
-
+	/**
+	 * 创建新的体系实例
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=createSchemeInstance")
+	public void insertSchemeInstance(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=createSchemeInstance的url请求");
+		// 读取请求体中的内容
+		BufferedReader br = request.getReader();
+		String line = br.readLine();
+		SchemeInfo scheme = JSON.parseObject(line, SchemeInfo.class);// 把JSON字符串解析为JavaBean
+		List<SchemeInfo> list = this.indiceDao.selectRenamedScheme(scheme);//判断该用户下是否存在同名体系的实例
+		if(list.size() == 0) {//若没有同名体系实例
+			int oldScheme_id=scheme.getScheme_id();
+			SchemeInfo newScheme=new SchemeInfo(scheme.getScheme_name(),scheme.getUser_id(),scheme.getIsInstance());
+			indiceDao.insertScheme(newScheme);
+			int newScheme_id=newScheme.getScheme_id();
+			IndiceInfo root=treeDao.selectRoot(oldScheme_id, -1);
+			copyScheme(root,newScheme_id,oldScheme_id,-1);
+		}
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(1));
+	}
+	public void copyScheme(IndiceInfo indice,int newScheme_id,int oldScheme_id,int father_id) {
+		int oldRootid=indice.getIndice_id();
+		IndiceInfo newRoot=new IndiceInfo();
+		newRoot.setScheme_id(newScheme_id);
+		newRoot.setFather_id(father_id);
+		treeDao.addTreeNode(newRoot);
+		List<IndiceInfo> children=treeDao.selectIndiceBySystemIdAndFatherId(oldScheme_id, oldRootid);
+		for(IndiceInfo child:children) {
+			copyScheme(child,newScheme_id,oldScheme_id,newRoot.getIndice_id());	
+		}
+	}
 	/**
 	 * 根据体系名模糊查询
 	 * 
@@ -127,11 +168,11 @@ public class IndiceController {
 	 * @throws IOException
 	 */
 	@RequestMapping(params = "request=fuzzyQueryBySchemeName")
-	public void fuzzyQueryBySchemeName(String scheme_name, String user_id, HttpServletResponse response)
+	public void fuzzyQueryBySchemeName(String scheme_name, String user_id, String isInstance, HttpServletResponse response)
 			throws IOException {
 		System.out.println("捕获到参数为request=fuzzyQueryBySchemeName的url请求");
 		String like = '%' + scheme_name + '%';// 模糊查询
-		List<SchemeInfo> data = this.indiceDao.selectSchemeFuzzy(like, Integer.parseInt(user_id));
+		List<SchemeInfo> data = this.indiceDao.selectSchemeFuzzy(like, Integer.parseInt(user_id), Integer.parseInt(isInstance));
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(data));
 	}
@@ -165,6 +206,7 @@ public class IndiceController {
 	@RequestMapping(params = "request=deleteScheme")
 	public void deleteScheme(String scheme_id, HttpServletResponse response) throws IOException {
 		System.out.println("捕获到参数为request=changeScheme的url请求");
+		this.treeDao.deleteSchemeIndice(Integer.parseInt(scheme_id));//外键约束：先删除该体系下的所有指标
 		int num = this.indiceDao.deleteScheme(Integer.parseInt(scheme_id));
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(num));

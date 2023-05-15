@@ -99,10 +99,23 @@ public class TreeService {
 	 * @return
 	 */
 	public int deleteTreeNode(int indice_id) {
-		int ret=-1;
-		ret=treeDao.deleteChildren(indice_id);
-		treeDao.deleteIndice(indice_id);
-		return ret;
+		dfsForDelete(null, indice_id);
+		return 1;
 	}
-
+	public void dfsForDelete(IndiceInfo root, int indice_id) {
+		List<IndiceInfo> children;
+		if(root == null) {
+			children = treeDao.selectChildrenByFatherId(indice_id);
+		}else {
+			children = treeDao.selectChildrenByFatherId(root.getIndice_id());
+		}
+		for(IndiceInfo child : children) {
+			dfsForDelete(child, indice_id);
+		}
+		if(root == null) {
+			treeDao.deleteIndice(indice_id);
+		}else {
+			treeDao.deleteIndice(root.getIndice_id());
+		}
+	}
 }
