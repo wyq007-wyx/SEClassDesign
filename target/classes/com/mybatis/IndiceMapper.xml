@@ -48,15 +48,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<!-- 模糊查询所有体系模板或实例信息 -->
 	<select id="selectSchemeFuzzy" resultType="com.pojo.SchemeInfo">
 		select * from scheme
-		where scheme_name like #{scheme_name} and user_id = #{user_id} and isInstance = {isInstance}
+		where scheme_name like #{scheme_name} and user_id = #{user_id} and isInstance = #{isInstance}
 	</select>
 	<!-- 修改体系信息 -->
 	<update id="updateSchemeInfo" parameterType="com.pojo.SchemeInfo">
 		update scheme
-		set
-		scheme_name = #{scheme_name}
-		where
-		user_id = #{user_id} and scheme_id = #{scheme_id}
+		set scheme_name = #{scheme_name}
+		where user_id = #{user_id} and scheme_id = #{scheme_id}
 	</update>
 	<!-- 删除一个体系 -->
 	<delete id="deleteScheme" parameterType="int">

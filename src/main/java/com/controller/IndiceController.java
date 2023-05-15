@@ -1,14 +1,19 @@
 package com.controller;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.aspectj.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.alibaba.fastjson.JSON;
 import com.dao.IndiceDao;
@@ -93,7 +98,7 @@ public class IndiceController {
 	}
 
 	/**
-	 * 创建新体系
+	 * 创建新体系模板
 	 * 
 	 * @param request
 	 * @param response
@@ -281,5 +286,21 @@ public class IndiceController {
 		int num = this.indiceDao.updateIndiceInfo(indice);
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(num));
+	}
+	/**
+	 * 上传体系树文件
+	 * @param file
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=uploadTreeFile")
+	public void getUserImage(@RequestParam("treeFile") MultipartFile file, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=uploadTreeXMLFile的url请求");
+		String originFilename =  file.getOriginalFilename();
+		System.out.println("文件名为" + originFilename + "，文件格式" + file.getContentType());
+		//File treeFile = new File(originFilename);
+		
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString("success"));
 	}
 }
