@@ -37,8 +37,22 @@
                         @click="createNewScheme" plain>
                         创建新体系</el-button>
                     <el-button v-show="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
-                        @click="importScheme" plain>
+                        @click="upload.open=true" plain>
                         导入体系树</el-button>
+                    <!-- 导入体系树，xml文件 -->
+                    <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
+                        <el-upload ref="upload" :limit="1" accept=".xml, .json" :action="upload.url"
+                            :disabled="upload.isUploading" name="treeFile" :on-progress="handleFileUploadProgress"
+                            :on-success="handleFileSuccess" :auto-upload="false" drag>
+                            <i class="el-icon-upload"></i>
+                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                            <div class="el-upload__tip" style="color:red" slot="tip">提示：仅允许导入“xml”或“json”格式文件！</div>
+                        </el-upload>
+                        <div slot="footer" class="dialog-footer">
+                            <el-button type="primary" @click="submitImportCourse">确 定</el-button>
+                            <el-button @click="cancelUploadFile">取 消</el-button>
+                        </div>
+                    </el-dialog>
                     <!-- 右上角显示用户名，是一个下拉菜单，可以进行修改和退出登录 -->
                     <el-dropdown split-button type="primary" @click="currentUserInfoDialogVisible = true"
                         @command="operateCurrentUser">
@@ -374,6 +388,19 @@
                 innerDrawerTitle: '',
                 //新增或修改指标的表单
                 indiceForm: {},
+                //导入体系树需要的数据
+                upload: {
+                    // 是否显示弹出层（用户导入）
+                    open: false,
+                    // 弹出层标题（用户导入）
+                    title: "导入体系树模板",
+                    // 是否禁用上传
+                    isUploading: false,
+                    // 是否更新已经存在的用户数据
+                    updateSupport: 0,
+                    // 上传的地址
+                    url: 'http://localhost:2008/SEClassDesign/RequestFromIndiceManagePage.do?request=uploadTreeFile'
+                },
                 //用于分页
                 page: {
                     //当前页数
@@ -513,9 +540,6 @@
                     });
                 });
             },
-            importScheme() {
-
-            },
             //当前用户 点击下拉菜单
             operateCurrentUser(command) {
                 if (command == 'changeInfo') { //点击了修改信息菜单项
@@ -575,7 +599,7 @@
                 axios({
                     method: "post",
                     url: url,
-                    data: "scheme_name=" + _this.schemeNameForQuery + '&user_id=' + _this.currentUser +
+                    data: "scheme_name=" + _this.schemeNameForQuery + '&user_id=' + _this.currentUser.user_id +
                         '&isInstance=' + isInstance
                 }).then(function (resp) {
                     console.log("获取到了……\n" + resp.data);
@@ -719,9 +743,7 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,10}$/,
                     inputErrorMessage: '体系名称格式不正确'
-                }).then(({
-                    value
-                }) => {
+                }).then(({value}) => {
                     var data = {
                         user_id: _this.currentUser.user_id,
                         scheme_id: row.scheme_id,
@@ -803,9 +825,7 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,20}$/,
                     inputErrorMessage: '体系实例名称格式不正确'
-                }).then(({
-                    value
-                }) => {
+                }).then(({value}) => {
                     data.scheme_name = value;
                     //创建新体系实例
                     axios({
@@ -848,8 +868,34 @@
                 //修改页码
                 this.page.currentPage = val;
             },
-
-
+            //Excel批量导入
+            // 文件上传中处理
+            handleFileUploadProgress(event, file, fileList) {
+                this.upload.isUploading = true;
+            },
+            // 文件上传成功处理
+            handleFileSuccess(response, file, fileList) {
+                var _this = this;
+                this.upload.open = false; //关闭文件上传对话框
+                this.upload.isUploading = false; //禁用文件上传
+                this.$refs.upload.clearFiles(); //清空文件列表
+                //提示导入结果
+                this.$alert(response, "导入结果", {
+                    confirmButtonText: '确定',
+                    callback: action => { //点击确定后刷新页面
+                        _this.getSchemeInfo(0);
+                    }
+                });
+            },
+            // 提交上传文件
+            submitImportCourse() {
+                this.$refs.upload.submit();//提交到后台
+            },
+            // 取消上传
+            cancelUploadFile(){
+                upload.open = false;//关闭上传对话框
+                this.$refs.upload.clearFiles(); //清空文件列表
+            }
         }
     })
 </script>
