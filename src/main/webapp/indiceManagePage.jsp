@@ -37,16 +37,17 @@
                         @click="createNewScheme" plain>
                         创建新体系</el-button>
                     <el-button v-show="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
-                        @click="upload.open=true" plain>
+                        @click="importSchemeTree" plain>
                         导入体系树</el-button>
                     <!-- 导入体系树，xml文件 -->
                     <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
-                        <el-upload ref="upload" :limit="1" accept=".xml, .json" :action="upload.url"
-                            :disabled="upload.isUploading" name="treeFile" :on-progress="handleFileUploadProgress"
-                            :on-success="handleFileSuccess" :auto-upload="false" drag>
+                        <el-upload ref="upload" :limit="1" accept="upload.accept" :action="upload.url"
+                            :data="upload.additionalData" :disabled="upload.isUploading" name="treeFile" :before-upload="beforeAvatarUpload"
+                            :on-progress="handleFileUploadProgress" :on-success="handleFileSuccess" :auto-upload="false"
+                            drag>
                             <i class="el-icon-upload"></i>
                             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                            <div class="el-upload__tip" style="color:red" slot="tip">提示：仅允许导入“xml”或“json”格式文件！</div>
+                            <div class="el-upload__tip" style="color:red" slot="tip">{{this.upload.tips}}</div>
                         </el-upload>
                         <div slot="footer" class="dialog-footer">
                             <el-button type="primary" @click="submitImportCourse">确 定</el-button>
@@ -157,7 +158,7 @@
                             </el-table-column>
                             <el-table-column prop="indice_weight" label="指标权重" align="center">
                                 <template
-                                    slot-scope="scope">{{ typeof(scope.row.indice_weight) == 'undefined' ? '无' : scope.row.indice_weight }}</template>
+                                    slot-scope="scope">{{ typeof(scope.row.indice_weight) == 'undefined' ? '无' : scope.row.indice_weight / 100 }}</template>
                             </el-table-column>
                             <el-table-column prop="father_id" label="父节点id" align="center">
                                 <template
@@ -266,7 +267,7 @@
                             </el-table-column>
                             <el-table-column prop="indice_weight" label="指标权重" align="center">
                                 <template
-                                    slot-scope="scope">{{ typeof(scope.row.indice_weight) == 'undefined' ? '无' : scope.row.indice_weight }}</template>
+                                    slot-scope="scope">{{ typeof(scope.row.indice_weight) == 'undefined' ? '无' : scope.row.indice_weight / 100 }}</template>
                             </el-table-column>
                             <el-table-column prop="father_id" label="父节点id" align="center">
                                 <template
@@ -314,11 +315,11 @@
                                     </el-form-item>
                                 </el-form>
                                 <div style="position: fixed; bottom: 0; width: 100%; padding-bottom: 20px;">
-                                    <el-button @click="innerDrawerVisible = false"
-                                        style="float: left; width: 12vw; margin-left: 2vw;">取 消</el-button>
                                     <el-button type="primary" @click="addOrChangeIndice"
                                         style="float: left; width: 12vw; margin-left: 2vw;">
                                         确 定</el-button>
+                                    <el-button @click="innerDrawerVisible = false"
+                                        style="float: left; width: 12vw; margin-left: 2vw;">取 消</el-button>
                                 </div>
                             </div>
                         </el-drawer>
@@ -392,14 +393,20 @@
                 upload: {
                     // 是否显示弹出层（用户导入）
                     open: false,
+                    //接收的文件类型
+                    accept: '',
                     // 弹出层标题（用户导入）
-                    title: "导入体系树模板",
+                    title: '',
                     // 是否禁用上传
                     isUploading: false,
                     // 是否更新已经存在的用户数据
                     updateSupport: 0,
+                    //需要附带的数据
+                    additionalData: {},
+                    //提示信息
+                    tips: '',
                     // 上传的地址
-                    url: 'http://localhost:2008/SEClassDesign/RequestFromIndiceManagePage.do?request=uploadTreeFile'
+                    url: ''
                 },
                 //用于分页
                 page: {
@@ -414,6 +421,9 @@
         },
         mounted() { //HTML页面渲染成功，就获取所有用户的信息    
             this.currentUser = ${sessionScope.currentUser}; //从session中获取当前正在登录的对象
+            this.uploadAdditionalData = {
+                user_id: this.currentUser.user_id
+            }; //上传文件时附带的数据
             this.getSchemeInfo(0);
             this.getAllOperator(); //获取所有的算子
         },
@@ -425,50 +435,8 @@
                     this.getSchemeInfo(0);
                 } else if (index == '1-2') { //所有的体系实例
                     this.getSchemeInfo(1);
-                } else if (index == '2-1') { //创建体系树
+                } else { //创建体系树
                     this.createNewScheme();
-                } else { //运行
-                    const h = this.$createElement;
-                    var _this = this;
-                    this.$msgbox({
-                        title: '请选择体系', //弹框标题
-                        //弹框信息
-                        message: h('el-select', {
-                                props: {
-                                    value: '',
-                                    filterable: true
-                                },
-                                ref: 'selectView',
-                                on: {
-                                    change: e => {
-                                        _this.schemeIDForDisplay = e;
-                                        _this.$refs.selectView.value = e;
-                                    }
-                                }
-                            },
-                            [
-                                _this.schemeTableData.map(it => {
-                                    return h('el-option', {
-                                        props: {
-                                            key: it.scheme_id,
-                                            label: it.scheme_name,
-                                            value: it.scheme_id
-                                        }
-                                    });
-                                })
-                            ]
-                        ),
-                        showCancelButton: true,
-                        closeOnClickModal: false,
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消'
-                    }).then(_ => {
-                        //成功操作
-                        console.log('点击确定，运行体系scheme_id=' + _this.schemeIDForDisplay);
-                    }).catch(_ => {
-                        //取消操作
-                        console.log('取消');
-                    });
                 }
             },
             //获取所有的算子
@@ -493,6 +461,12 @@
                     console.log('获取到了所有体系信息:\n' + resp.data);
                     _this.schemeTableData = resp.data;
                     _this.page.total = _this.schemeTableData.length;
+                    if (_this.page.total % _this.page.pageSize == 0) { //如果删除后当前页无内容，需要减少页码
+                        _this.page.currentPage = _this.page.total / _this.page.pageSize;
+                    }
+                    if (_this.page.currentPage == 0) {
+                        _this.page.currentPage = 1;
+                    }
                 })
             },
             //点击创建新体系
@@ -525,12 +499,13 @@
                                 type: 'success'
                             });
                             _this.getSchemeInfo(0);
-                            window.location.href =
-                                "http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" +
-                                resp.data;
+                            if (_this.pageNo == '2-1') { //直接打开体系树页面
+                                window.location.href =
+                                    "http://localhost:2008/SEClassDesign/getSystemTree.do?scheme_id=" +
+                                    resp.data + '&isInstance=0';
+                            }
                         } else {
                             _this.$message.error('创建失败！可能存在同名体系');
-
                         }
                     })
                 }).catch(() => {
@@ -538,9 +513,13 @@
                         type: 'info',
                         message: '取消创建'
                     });
+                    if (_this.pageNo == '2-1') { //回到首页
+                        _this.pageNo = '1-1';
+                        _this.getSchemeInfo(0);
+                    }
                 });
             },
-            //当前用户 点击下拉菜单
+            //当前用户点击下拉菜单
             operateCurrentUser(command) {
                 if (command == 'changeInfo') { //点击了修改信息菜单项
                     this.changeUserForm = JSON.parse(JSON.stringify(this.currentUser)); //为修改表单赋初值
@@ -599,7 +578,8 @@
                 axios({
                     method: "post",
                     url: url,
-                    data: "scheme_name=" + _this.schemeNameForQuery + '&user_id=' + _this.currentUser.user_id +
+                    data: "scheme_name=" + _this.schemeNameForQuery + '&user_id=' + _this.currentUser
+                        .user_id +
                         '&isInstance=' + isInstance
                 }).then(function (resp) {
                     console.log("获取到了……\n" + resp.data);
@@ -702,10 +682,10 @@
                 Vue.prototype.$confirm(tips, '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
-                    type: 'warning'
+                    type: 'warning',
+                    cancelButtonClass: 'el-button--default el-button--small el-button--cancel'
                 }).then(() => { //点击了确定
                     //删除一个指标
-                    console.log("url是" + url);
                     axios({
                         method: "post",
                         url: url,
@@ -724,8 +704,8 @@
                                 type: 'success',
                                 message: '删除成功!'
                             });
-                            _this.schemeDetailDrawerVisible = false;//关闭外部抽屉
-                            _this.getSchemeInfo(1);//刷新页面
+                            _this.schemeDetailDrawerVisible = false; //关闭外部抽屉
+                            _this.getSchemeInfo(_this.pageNo == '1-1' ? 0 : 1); //刷新页面
                         }
                     })
                 }).catch(() => { //点击了取消
@@ -743,7 +723,9 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,10}$/,
                     inputErrorMessage: '体系名称格式不正确'
-                }).then(({value}) => {
+                }).then(({
+                    value
+                }) => {
                     var data = {
                         user_id: _this.currentUser.user_id,
                         scheme_id: row.scheme_id,
@@ -762,7 +744,7 @@
                                 message: '修改成功！',
                                 type: 'success'
                             });
-                            _this.getSchemeInfo(0);
+                            _this.getSchemeInfo(_this.pageNo == '1-1' ? 0 : 1);
                         }
                     })
                 }).catch(() => {
@@ -778,7 +760,8 @@
                 Vue.prototype.$confirm('此操作将永久删除该条记录, 是否继续?', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
-                    type: 'warning'
+                    type: 'warning',
+                    cancelButtonClass: 'el-button--default el-button--small el-button--cancel'
                 }).then(() => { //点击了确定
                     //删除一个体系
                     var data = 'scheme_id=' + row.scheme_id;
@@ -825,7 +808,9 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,20}$/,
                     inputErrorMessage: '体系实例名称格式不正确'
-                }).then(({value}) => {
+                }).then(({
+                    value
+                }) => {
                     data.scheme_name = value;
                     //创建新体系实例
                     axios({
@@ -856,7 +841,28 @@
             },
             //点击运行按钮
             clickExecuteBtn(row) {
-
+                var _this = this;
+                axios({
+                    method: 'post',
+                    url: 'http://localhost:2008/SEClassDesign/checkInstance.do',
+                    data: 'scheme_id=' + row.scheme_id
+                }).then(function (resp) {
+                    if (resp.data == 'weight_err') {
+                        _this.$message.error('权重设置错误，请检查权重！');
+                    } else if (resp.data == 'op_err') {
+                        _this.$message.error('部分指标尚未配置算子，请配置算子！');
+                    } else {
+                        //弹出上传excel窗口
+                        _this.upload.title = '上传excel';
+                        _this.upload.url = 'http://localhost:2008/SEClassDesign/executeTree.do';
+                        _this.upload.tips = '提示：仅允许导入Excel格式文件！';
+                        _this.upload.accept = '.xlsx, .xls';
+                        _this.upload.additionalData = {
+                            scheme_id: row.scheme_id
+                        };
+                        _this.upload.open = true;
+                    }
+                });
             },
             //滑块数值格式化
             formatTooltip(val) {
@@ -869,6 +875,36 @@
                 this.page.currentPage = val;
             },
             //Excel批量导入
+            //点击导入体系树
+            importSchemeTree() {
+                this.upload.title = '导入体系树模板';
+                this.upload.accept = '.xml, .json';
+                this.upload.url =
+                    'http://localhost:2008/SEClassDesign/RequestFromIndiceManagePage.do?request=uploadTreeFile';
+                this.upload.additionalData = {
+                    user_id: this.currentUser.user_id
+                };
+                this.upload.tips = '提示：仅允许导入“xml”或“json”格式文件！';
+                this.upload.open = true;
+            },
+            //上传文件前检验文件类型
+            beforeAvatarUpload(file) {
+                var fileType1 = (file.type === 'text/xml' || file.type === 'application/json');
+                var fileType2 = (file.type === 'application/vnd.ms-excel' || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                if(this.pageNo == '1-1'){
+                    if(!fileType1){
+                        this.$message.error('上传文件只能是 JSON / XML 格式!');
+                        return false;
+                    }
+                    
+                }else{
+                    if(!fileType2){
+                        this.$message.error('上传文件只能是 XLSX / XLS 格式!');
+                        return false;
+                    }
+                }
+                return true;
+            },
             // 文件上传中处理
             handleFileUploadProgress(event, file, fileList) {
                 this.upload.isUploading = true;
@@ -879,21 +915,27 @@
                 this.upload.open = false; //关闭文件上传对话框
                 this.upload.isUploading = false; //禁用文件上传
                 this.$refs.upload.clearFiles(); //清空文件列表
-                //提示导入结果
-                this.$alert(response, "导入结果", {
-                    confirmButtonText: '确定',
-                    callback: action => { //点击确定后刷新页面
-                        _this.getSchemeInfo(0);
-                    }
-                });
+                if (this.pageNo == '1-1') {
+                    //提示导入结果
+                    this.$alert(response, "导入结果", {
+                        confirmButtonText: '确定',
+                        callback: action => { //点击确定后刷新页面
+                            _this.getSchemeInfo(0);
+                        }
+                    });
+                } else {
+                    sessionStorage.setItem('jsontreelist', response);
+                    window.open("http://localhost:2008/SEClassDesign/resultManagePage.jsp");
+                }
+
             },
             // 提交上传文件
             submitImportCourse() {
-                this.$refs.upload.submit();//提交到后台
+                this.$refs.upload.submit(); //提交到后台
             },
             // 取消上传
-            cancelUploadFile(){
-                upload.open = false;//关闭上传对话框
+            cancelUploadFile() {
+                this.upload.open = false; //关闭上传对话框
                 this.$refs.upload.clearFiles(); //清空文件列表
             }
         }

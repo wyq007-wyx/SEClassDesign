@@ -5,12 +5,9 @@ public class IndiceInfo {
 	private String indice_name;//指标名称
 	private Double indice_weight;//指标权重
 	private Double indice_value;//指标值
-	private Integer  father_id;//指标父节点
+	private Integer father_id;//指标父节点
 	private Integer operator_id;//指标算子
 	private int scheme_id;//指标所属体系
-	
-	
-	
 	
 	public IndiceInfo() {
 	}

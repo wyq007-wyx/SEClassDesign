@@ -14,41 +14,45 @@ import com.pojo.UserInfo;
 @Repository("indiceDao")
 @Mapper
 public interface IndiceDao {
-		// 获取所有的体系信息
-		List<SchemeInfo> selectAllSchemeInfo(@Param("user_id") int user_id, @Param("isInstance") int isInstance);
-		
-		//根据id查询体系信息
-		SchemeInfo selectSchemeInfoById(int scheme_id);
+	// 获取所有的体系信息
+	List<SchemeInfo> selectAllSchemeInfo(@Param("user_id") int user_id, @Param("isInstance") int isInstance);
 
-		// 获取所有的算子信息
-		List<OperatorInfo> selectAllOperator();
+	// 根据id查询体系信息
+	SchemeInfo selectSchemeInfoById(int scheme_id);
 
-		// 修改当前用户信息
-		int updateCurrentUserInfo(UserInfo user);
+	// 获取所有的算子信息
+	List<OperatorInfo> selectAllOperator();
 
-		//插入前判断该用户下是否存在同名体系
-		List<SchemeInfo> selectRenamedScheme(SchemeInfo scheme);
-		
-		// 新增体系
-		int insertScheme(SchemeInfo scheme);
+	// 修改当前用户信息
+	int updateCurrentUserInfo(UserInfo user);
 
-		// 根据体系名称模糊查询
-		List<SchemeInfo> selectSchemeFuzzy(@Param("scheme_name") String scheme_name, @Param("user_id") int user_id, @Param("isInstance") int isInstance);
+	// 插入前判断该用户下是否存在同名体系
+	List<SchemeInfo> selectRenamedScheme(SchemeInfo scheme);
 
-		int updateSchemeInfo(SchemeInfo scheme);
+	// 新增体系
+	int insertScheme(SchemeInfo scheme);
 
-		// 根据体系id删除体系
-		int deleteScheme(int scheme_id);
+	// 根据体系名称模糊查询
+	List<SchemeInfo> selectSchemeFuzzy(@Param("scheme_name") String scheme_name, @Param("user_id") int user_id,
+			@Param("isInstance") int isInstance);
 
-		// 获取单个体系的所有指标信息
-		List<IndiceInfo> getSingleSchemeDetailInfo(@Param("scheme_id") int scheme_id, @Param("user_id") int user_id);
+	int updateSchemeInfo(SchemeInfo scheme);
 
-		// 删除一个指标
-		int deleteIndice(int indice_id);
+	// 根据体系id删除体系
+	int deleteScheme(int scheme_id);
 
-		// 创建一个指标
-		int insertIndiceInfo(IndiceInfo indice);
+	// 获取单个体系的所有指标信息
+	List<IndiceInfo> getSingleSchemeDetailInfo(@Param("scheme_id") int scheme_id, @Param("user_id") int user_id);
 
-		// 更新一个指标
-		int updateIndiceInfo(IndiceInfo indice);
+	// 删除一个指标
+	int deleteIndice(int indice_id);
+
+	// 创建一个指标
+	int insertIndiceInfo(IndiceInfo indice);
+
+	// 更新一个指标
+	int updateIndiceInfo(IndiceInfo indice);
+
+	// 根据体系id查询体系名称
+	String selectScheme_nameByScheme_id(int scheme_id);
 }
