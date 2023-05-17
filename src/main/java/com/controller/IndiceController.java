@@ -132,6 +132,7 @@ public class IndiceController {
 			// 创建该体系的根节点
 			IndiceInfo root = new IndiceInfo();
 			root.setFather_id(-1);
+			root.setIndice_name("root");
 			root.setScheme_id(scheme.getScheme_id());
 			indiceDao.insertIndiceInfo(root);
 		}
@@ -170,6 +171,7 @@ public class IndiceController {
 		int oldRootid = indice.getIndice_id();
 		IndiceInfo newRoot = new IndiceInfo();
 		newRoot.setScheme_id(newScheme_id);
+		newRoot.setIndice_name(indice.getIndice_name());
 		newRoot.setFather_id(father_id);
 		treeDao.addTreeNode(newRoot);
 		List<IndiceInfo> children = treeDao.selectIndiceBySystemIdAndFatherId(oldScheme_id, oldRootid);

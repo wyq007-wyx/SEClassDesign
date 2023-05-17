@@ -420,8 +420,10 @@
                 this.pageNo = index;
                 if (index == '1-1') { //所有的体系模板
                     this.getSchemeInfo(0);
+                    _this.page.currentPage = 1;
                 } else if (index == '1-2') { //所有的体系实例
                     this.getSchemeInfo(1);
+                    _this.page.currentPage = 1;
                 } else { //创建体系树
                     this.createNewScheme();
                 }
@@ -714,9 +716,7 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,10}$/,
                     inputErrorMessage: '体系名称格式不正确'
-                }).then(({
-                    value
-                }) => {
+                }).then(({value}) => {
                     var data = {
                         user_id: _this.currentUser.user_id,
                         scheme_id: row.scheme_id,
@@ -736,6 +736,8 @@
                                 type: 'success'
                             });
                             _this.getSchemeInfo(_this.pageNo == '1-1' ? 0 : 1);
+                        }else{
+                            _this.$message.error('修改失败！');
                         }
                     })
                 }).catch(() => {
@@ -799,9 +801,7 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,20}$/,
                     inputErrorMessage: '体系实例名称格式不正确'
-                }).then(({
-                    value
-                }) => {
+                }).then(({value}) => {
                     data.scheme_name = value;
                     //创建新体系实例
                     axios({
@@ -809,7 +809,7 @@
                         url: _this.urlHeader + 'request=createSchemeInstance',
                         data: data
                     }).then(function (resp) {
-                        //console.log("resp.data" + resp.data); //创建成功
+                        console.log("resp.data" + resp.data); //创建成功
                         //打开体系树页面
                         if (resp.data > 0) {
                             Vue.prototype.$message({
@@ -818,6 +818,7 @@
                             });
                             _this.getSchemeInfo(1);
                             _this.pageNo = '1-2';
+                            _this.page.currentPage = 1;
                         } else {
                             _this.$message.error('创建失败！可能存在同名体系实例');
 
