@@ -156,17 +156,9 @@
                                 <template
                                     slot-scope="scope">{{ typeof(scope.row.indice_name) == 'undefined' ? '无' : scope.row.indice_name }}</template>
                             </el-table-column>
-                            <el-table-column prop="indice_weight" label="指标权重" align="center">
-                                <template
-                                    slot-scope="scope">{{ typeof(scope.row.indice_weight) == 'undefined' ? '无' : scope.row.indice_weight / 100 }}</template>
-                            </el-table-column>
                             <el-table-column prop="father_id" label="父节点id" align="center">
                                 <template
                                     slot-scope="scope">{{ typeof(scope.row.father_id) == 'undefined' ? '无' : scope.row.father_id }}</template>
-                            </el-table-column>
-                            <el-table-column prop="operator_id" label="算子" align="center">
-                                <template
-                                    slot-scope="scope">{{ typeof(scope.row.operator_id) == 'undefined' ? '无' : scope.row.operator_id }}</template>
                             </el-table-column>
                             <el-table-column label="操作" align="center" fixed="right">
                                 <template slot-scope="scope">
@@ -183,34 +175,27 @@
                         <el-drawer v-bind:title="innerDrawerTitle" :append-to-body="true" :show-close="false"
                             :visible.sync="innerDrawerVisible">
                             <div>
-                                <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="120px">
-                                    <el-form-item label="指标名称" prop="indice_name">
+                                <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="25%">
+                                    <el-form-item label="指标名称" prop="indice_name" style="width: 90%">
                                         <el-input v-model="indiceForm.indice_name"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="指标权重" prop="indice_weight">
-                                        <el-slider v-model="indiceForm.indice_weight" :format-tooltip="formatTooltip">
-                                        </el-slider>
-                                    </el-form-item>
-                                    <el-form-item label="父节点id" prop="father_id">
-                                        <el-input v-model="indiceForm.father_id"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="算子" prop="operator_id">
-                                        <el-select v-model="indiceForm.operator_id" placeholder="请选择算子">
-                                            <el-option v-for="item in operators" :label="item.operator_description"
-                                                :value="item.operator_id" :key="item.operator_id">
+                                    <el-form-item label="父节点id" prop="father_id" style="width: 90%">
+                                        <el-select v-model="indiceForm.father_id" placeholder="请选择父节点" :disabled="indiceForm.father_id == -1 ? true : false" style="width: 100%">
+                                            <el-option v-for="item in singleSchemeDetailInfo" :label="item.indice_id"
+                                                :value="item.indice_id" :key="item.indice_id">
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="所属体系id" prop="scheme_id">
+                                    <el-form-item label="所属体系id" prop="scheme_id" style="width: 90%">
                                         <el-input v-model="indiceForm.scheme_id" disabled></el-input>
                                     </el-form-item>
                                 </el-form>
                                 <div style="position: fixed; bottom: 0; width: 100%; padding-bottom: 20px;">
-                                    <el-button @click="innerDrawerVisible = false"
-                                        style="float: left; width: 12vw; margin-left: 2vw;">取 消</el-button>
                                     <el-button type="primary" @click="addOrChangeIndice"
                                         style="float: left; width: 12vw; margin-left: 2vw;">
                                         确 定</el-button>
+                                    <el-button @click="innerDrawerVisible = false"
+                                        style="float: left; width: 12vw; margin-left: 2vw;">取 消</el-button>
                                 </div>
                             </div>
                         </el-drawer>
@@ -273,9 +258,7 @@
                                 <template
                                     slot-scope="scope">{{ typeof(scope.row.father_id) == 'undefined' ? '无' : scope.row.father_id }}</template>
                             </el-table-column>
-                            <el-table-column prop="operator_id" label="算子" align="center">
-                                <template
-                                    slot-scope="scope">{{ typeof(scope.row.operator_id) == 'undefined' ? '无' : scope.row.operator_id }}</template>
+                            <el-table-column prop="operator_id" label="算子" :formatter="formatOperator" align="center">
                             </el-table-column>
                             <el-table-column label="操作" align="center" fixed="right">
                                 <template slot-scope="scope">
@@ -292,25 +275,29 @@
                         <el-drawer v-bind:title="innerDrawerTitle" :append-to-body="true" :show-close="false"
                             :visible.sync="innerDrawerVisible">
                             <div>
-                                <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="120px">
-                                    <el-form-item label="指标名称" prop="indice_name">
+                                <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="25%">
+                                    <el-form-item label="指标名称" prop="indice_name" style="width: 90%">
                                         <el-input v-model="indiceForm.indice_name"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="指标权重" prop="indice_weight">
+                                    <el-form-item label="指标权重" prop="indice_weight" style="width: 90%">
                                         <el-slider v-model="indiceForm.indice_weight" :format-tooltip="formatTooltip">
                                         </el-slider>
                                     </el-form-item>
-                                    <el-form-item label="父节点id" prop="father_id">
-                                        <el-input v-model="indiceForm.father_id"></el-input>
+                                    <el-form-item label="父节点id" prop="father_id" style="width: 90%">
+                                        <el-select v-model="indiceForm.father_id" placeholder="请选择父节点" :disabled="indiceForm.father_id == -1 ? true : false" style="width: 100%">
+                                            <el-option v-for="item in singleSchemeDetailInfo" :label="item.indice_id"
+                                                :value="item.indice_id" :key="item.indice_id">
+                                            </el-option>
+                                        </el-select>
                                     </el-form-item>
-                                    <el-form-item label="算子" prop="operator_id">
-                                        <el-select v-model="indiceForm.operator_id" placeholder="请选择算子">
+                                    <el-form-item label="算子" prop="operator_id" style="width: 90%">
+                                        <el-select v-model="indiceForm.operator_id" placeholder="请选择算子" style="width: 100%">
                                             <el-option v-for="item in operators" :label="item.operator_description"
                                                 :value="item.operator_id" :key="item.operator_id">
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="所属体系id" prop="scheme_id">
+                                    <el-form-item label="所属体系id" prop="scheme_id" style="width: 90%">
                                         <el-input v-model="indiceForm.scheme_id" disabled></el-input>
                                     </el-form-item>
                                 </el-form>
@@ -657,10 +644,14 @@
                             message: message,
                             type: 'success'
                         });
-                        _this.innerDrawerVisible = false; //关闭表单
-                        _this.$refs.addOrChangeIndiceForm.resetFields(); //重置表单域
                         _this.getSingleSchemeDetailInfo(_this.indiceForm.scheme_id); //刷新
+                    }else if(resp.data == -1){
+                        _this.$message.error('失败！父节点不存在');
+                    }else{
+                        _this.$message.error('创建失败！');
                     }
+                    _this.innerDrawerVisible = false; //关闭表单
+                    _this.$refs.addOrChangeIndiceForm.resetFields(); //重置表单域
                 })
             },
             //点击了删除指标的按钮
@@ -863,6 +854,19 @@
                         _this.upload.open = true;
                     }
                 });
+            },
+            //格式化显示算子内容
+            formatOperator(row, column, cellValue, index){
+                if(typeof(row.operator_id) == 'undefined'){
+                    return '无';
+                }else{
+                    for(var operator of this.operators){
+                        if(operator.operator_id == row.operator_id){
+                            return operator.operator_description;
+                        }
+                    }
+                    return '无';
+                }
             },
             //滑块数值格式化
             formatTooltip(val) {

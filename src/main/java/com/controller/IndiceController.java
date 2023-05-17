@@ -278,7 +278,11 @@ public class IndiceController {
 		BufferedReader br = request.getReader();
 		String line = br.readLine();
 		IndiceInfo indice = JSON.parseObject(line, IndiceInfo.class);// 把JSON字符串解析为JavaBean
-		int num = this.indiceDao.insertIndiceInfo(indice);
+		IndiceInfo fatherIndice = this.indiceDao.selectIndiceInfoByIndice_id(indice.getFather_id(), indice.getScheme_id());
+		int num = -1;
+		if(fatherIndice != null) {
+			num = this.indiceDao.insertIndiceInfo(indice);
+		}
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(num));
 	}
@@ -297,7 +301,11 @@ public class IndiceController {
 		BufferedReader br = request.getReader();
 		String line = br.readLine();
 		IndiceInfo indice = JSON.parseObject(line, IndiceInfo.class);// 把JSON字符串解析为JavaBean
-		int num = this.indiceDao.updateIndiceInfo(indice);
+		IndiceInfo fatherIndice = this.indiceDao.selectIndiceInfoByIndice_id(indice.getFather_id(), indice.getScheme_id());
+		int num = -1;
+		if(fatherIndice != null) {
+			num = this.indiceDao.updateIndiceInfo(indice);
+		}
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(num));
 	}
