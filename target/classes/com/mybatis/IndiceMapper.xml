@@ -92,6 +92,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		operator_id = #{operator_id}
 		where indice_id = #{indice_id} and scheme_id = #{scheme_id}
 	</update>
+	<!-- 根据指标id、体系id查询指标 -->
+ 	<select id="selectIndiceInfoByIndice_id" parameterType="int" resultType="com.pojo.IndiceInfo">
+  		select * from indice where indice_id = #{indice_id} and scheme_id = #{scheme_id}
+ 	</select>
 	<!-- 根据体系id查询体系名称 -->
 	<select id="selectScheme_nameByScheme_id" parameterType="int" resultType="String">
 		select scheme_name from scheme where scheme_id = #{scheme_id}

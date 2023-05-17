@@ -53,6 +53,9 @@ public interface IndiceDao {
 	// 更新一个指标
 	int updateIndiceInfo(IndiceInfo indice);
 
+	//根据指标id、体系id查询指标
+ 	IndiceInfo selectIndiceInfoByIndice_id(@Param("indice_id") int indice_id, @Param("scheme_id") int scheme_id);
+
 	// 根据体系id查询体系名称
 	String selectScheme_nameByScheme_id(int scheme_id);
 }
