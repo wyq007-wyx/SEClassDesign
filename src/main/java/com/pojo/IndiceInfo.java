@@ -2,13 +2,24 @@ package com.pojo;
 
 public class IndiceInfo {
 	private Integer indice_id;//指标id
-	private String indice_name;//指标名
-	private Double indice_weight;//指标权重，可以为null
-	private Double indice_value;//指标值，可以为null
-	private Integer father_id;//父节点id
-	private Integer operator_id;//算子id
-	private int scheme_id;//所属体系id
-	//getter and setter
+	private String indice_name;//指标名称
+	private Double indice_weight;//指标权重
+	private Double indice_value;//指标值
+	private Integer father_id;//指标父节点
+	private Integer operator_id;//指标算子
+	private int scheme_id;//指标所属体系
+	
+	public IndiceInfo() {
+	}
+	public IndiceInfo(String indice_name, Double indice_weight, Double indice_value, Integer father_id,
+			Integer operator_id, int scheme_id) {
+		this.indice_name = indice_name;
+		this.indice_weight = indice_weight;
+		this.indice_value = indice_value;
+		this.father_id = father_id;
+		this.operator_id = operator_id;
+		this.scheme_id = scheme_id;
+	}
 	public Integer getIndice_id() {
 		return indice_id;
 	}
@@ -51,7 +62,14 @@ public class IndiceInfo {
 	public void setScheme_id(int scheme_id) {
 		this.scheme_id = scheme_id;
 	}
-	
-	
+	@Override
+	public String toString() {
+		return "IndiceInfo [indice_id=" + indice_id + ", indice_name=" + indice_name + ", indice_weight="
+				+ indice_weight + ", indice_value=" + indice_value + ", father_id=" + father_id + ", operator_id="
+				+ operator_id + ", system_id=" + scheme_id + "]";
+	}
+	public void display() {
+		System.out.println("[indice_id:"+indice_id+",indice_name:"+indice_name+"]");
+	}
 	
 }

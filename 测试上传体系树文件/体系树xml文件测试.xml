@@ -1,0 +1,14 @@
+<indice>
+    <name>根</name>
+    <children>
+        <indice>
+            <name>孩子1</name>
+        </indice>
+        <indice>
+            <name>孩子2</name>
+        </indice>
+        <indice>
+            <name>孩子3</name>
+        </indice>
+    </children>
+</indice>

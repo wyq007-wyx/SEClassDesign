@@ -11,6 +11,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="selectIndiceBySystemIdAndFatherId" resultType="com.pojo.IndiceInfo">
 		select * from indice where scheme_id = #{scheme_id} and father_id=#{father_id}
 	</select>
+	<!-- 真正的查找子节点 -->
+	<select id="selectChildrenByFatherId" parameterType="int" resultType="com.pojo.IndiceInfo">
+		select * from indice where father_id=#{father_id}
+	</select>
 	<!-- 添加一个子节点 -->
 	<insert id="addTreeNode" parameterType="com.pojo.IndiceInfo" keyProperty="indice_id" useGeneratedKeys="true">
 		insert into indice(indice_name, father_id, scheme_id)

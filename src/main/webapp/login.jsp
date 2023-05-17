@@ -155,7 +155,6 @@
     <!-- <script src="js/vue.js"></script> -->
     <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
     <!-- import JavaScript -->
-    <!-- <script src="element-ui/lib/index.js"></script> -->
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <script>
         import Vue from 'vue';

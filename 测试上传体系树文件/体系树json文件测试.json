@@ -1,0 +1,17 @@
+{
+    "name": "根",
+    "children": [
+        {
+            "name": "孩子1",
+            "children": []
+        },
+        {
+            "name": "孩子2",
+            "children": []
+        },
+        {
+            "name": "孩子3",
+            "children": []
+        }
+    ]
+}

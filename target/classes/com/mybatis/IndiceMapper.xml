@@ -1,12 +1,26 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dao.IndiceDao">
-	<!-- 查询所有体系信息 -->
-	<select id="selectAllSchemeInfo" parameterType="int" resultType="com.pojo.SchemeInfo">
-		select * from scheme where user_id = #{user_id}
+	<!-- 查询所有体系模板或实例信息 -->
+	<select id="selectAllSchemeInfo" resultType="com.pojo.SchemeInfo">
+		select * from scheme where user_id = #{user_id} and isInstance = #{isInstance}
 	</select>
+	
+	<!-- 根据体系id查询体系信息 -->
+	<select id="selectSchemeInfoById" parameterType="int" resultType="com.pojo.SchemeInfo">
+		select * from scheme where scheme_id = #{scheme_id}
+	</select>
+	<!-- 根据体系id查询所有的体系模板 -->
+	<select id="selectSchemeTemplateInfoById" parameterType="int" resultType="com.pojo.SchemeInfo">
+		select * from scheme where scheme_id = #{scheme_id} and isInstance = 0
+	</select>
+	<!-- 根据体系id查询所有的体系实例 -->
+	<select id="selectSchemeInstanceInfoById" parameterType="int" resultType="com.pojo.SchemeInfo">
+		select * from scheme where scheme_id = #{scheme_id} and isInstance = 1
+	</select>
+	
 	<!-- 查询所有算子信息 -->
 	<select id="selectAllOperator" resultType="com.pojo.OperatorInfo">
 		select * from operator
@@ -20,25 +34,27 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		email = #{email}
 		where user_id = #{user_id}
 	</update>
+	<!-- 插入前判断该用户下是否存在同名体系模板或实例 -->
+	<select id="selectRenamedScheme" parameterType="com.pojo.SchemeInfo" resultType="com.pojo.SchemeInfo">
+		select * from scheme where user_id = #{user_id} and scheme_name = #{scheme_name} and isInstance = #{isInstance}
+	</select>
 	<!-- 插入一条体系信息 -->
 	<insert id="insertScheme" parameterType="com.pojo.SchemeInfo"
 		keyProperty="scheme_id" useGeneratedKeys="true">
 		insert into
-		scheme(scheme_name, user_id)
-		values(#{scheme_name}, #{user_id})
+		scheme(scheme_name, user_id, isInstance)
+		values(#{scheme_name}, #{user_id}, #{isInstance})
 	</insert>
-	<!-- 查询所有体系信息 -->
+	<!-- 模糊查询所有体系模板或实例信息 -->
 	<select id="selectSchemeFuzzy" resultType="com.pojo.SchemeInfo">
 		select * from scheme
-		where scheme_name like #{scheme_name} and user_id = #{user_id}
+		where scheme_name like #{scheme_name} and user_id = #{user_id} and isInstance = #{isInstance}
 	</select>
 	<!-- 修改体系信息 -->
 	<update id="updateSchemeInfo" parameterType="com.pojo.SchemeInfo">
 		update scheme
-		set
-		scheme_name = #{scheme_name}
-		where
-		user_id = #{user_id} and scheme_id = #{scheme_id}
+		set scheme_name = #{scheme_name}
+		where user_id = #{user_id} and scheme_id = #{scheme_id}
 	</update>
 	<!-- 删除一个体系 -->
 	<delete id="deleteScheme" parameterType="int">
@@ -57,6 +73,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		delete from indice where
 		indice_id = #{indice_id}
 	</delete>
+	
 	<!-- 创建一个指标 -->
 	<insert id="insertIndiceInfo" parameterType="com.pojo.IndiceInfo"
 		keyProperty="indice_id" useGeneratedKeys="true">
@@ -75,4 +92,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		operator_id = #{operator_id}
 		where indice_id = #{indice_id} and scheme_id = #{scheme_id}
 	</update>
+	<!-- 根据指标id、体系id查询指标 -->
+ 	<select id="selectIndiceInfoByIndice_id" parameterType="int" resultType="com.pojo.IndiceInfo">
+  		select * from indice where indice_id = #{indice_id} and scheme_id = #{scheme_id}
+ 	</select>
+	<!-- 根据体系id查询体系名称 -->
+	<select id="selectScheme_nameByScheme_id" parameterType="int" resultType="String">
+		select scheme_name from scheme where scheme_id = #{scheme_id}
+	</select>
 </mapper>

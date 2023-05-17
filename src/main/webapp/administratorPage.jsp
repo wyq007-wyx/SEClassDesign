@@ -5,11 +5,9 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>用户管理</title>
+    <link rel="stylesheet" href="./css/administratorPage.css">
     <!-- 在线引入最新样式 -->
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <!-- 引入本地element资源 -->
-    <!-- <link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css"> -->
-    <link rel="stylesheet" href="./css/administratorPage.css">
 </head>
 
 <body>
