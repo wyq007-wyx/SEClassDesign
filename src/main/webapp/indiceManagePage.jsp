@@ -420,10 +420,10 @@
                 this.pageNo = index;
                 if (index == '1-1') { //所有的体系模板
                     this.getSchemeInfo(0);
-                    _this.page.currentPage = 1;
+                    this.page.currentPage = 1;
                 } else if (index == '1-2') { //所有的体系实例
                     this.getSchemeInfo(1);
-                    _this.page.currentPage = 1;
+                    this.page.currentPage = 1;
                 } else { //创建体系树
                     this.createNewScheme();
                 }
