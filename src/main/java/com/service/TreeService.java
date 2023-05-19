@@ -418,7 +418,7 @@ public class TreeService {
 	 * @throws Exception
 	 */
 	public void writeIntoExcel(List<TreeNode> list, String filepath, String scheme_name, int user_id) throws Exception {
-		String filename = scheme_name + user_id + ".xls";
+		String filename = scheme_name + "-" + user_id + ".xls";
 		File file = new File(filepath, filename);
 		if(file.exists()) {//如果文件存在，删除重新创建
 			file.delete();
