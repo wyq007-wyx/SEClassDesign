@@ -456,7 +456,7 @@ public class IndiceController {
 		int user_id = user.getUser_id();
 		int scheme_id = Integer.parseInt(request.getParameter("scheme_id"));//获取体系id
 		String scheme_name = this.indiceDao.selectScheme_nameByScheme_id(scheme_id);//根据体系id查询体系名称
-		String filename = scheme_name + user_id + ".xls";
+		String filename = scheme_name + "-" + user_id + ".xls";
 		// 保存在本地磁盘中的文件
 		File file = new File(filepath, filename);
 		/*
