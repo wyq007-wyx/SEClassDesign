@@ -303,9 +303,13 @@ public class IndiceController {
 		BufferedReader br = request.getReader();
 		String line = br.readLine();
 		IndiceInfo indice = JSON.parseObject(line, IndiceInfo.class);// 把JSON字符串解析为JavaBean
-		IndiceInfo fatherIndice = this.indiceDao.selectIndiceInfoByIndice_id(indice.getFather_id(), indice.getScheme_id());
 		int num = -1;
-		if(fatherIndice != null) {
+		if(indice.getFather_id() != -1) {//若不是根节点，需要判断父节点是否存在
+			IndiceInfo fatherIndice = this.indiceDao.selectIndiceInfoByIndice_id(indice.getFather_id(), indice.getScheme_id());
+			if(fatherIndice != null) {
+				num = this.indiceDao.updateIndiceInfo(indice);
+			}
+		}else {
 			num = this.indiceDao.updateIndiceInfo(indice);
 		}
 		response.setContentType("text/json;charset=utf-8");

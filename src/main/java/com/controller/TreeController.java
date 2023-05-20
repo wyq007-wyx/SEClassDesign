@@ -163,18 +163,23 @@ public class TreeController {
 		String originFilename = file.getOriginalFilename();//获取源文件名称
 		File dataFile = new File(originFilename);
 		file.transferTo(dataFile);
-		List<TreeNode> treeList=this.treeService.getTreeList(dataFile, Integer.parseInt(scheme_id));
-		List<String> strList = new ArrayList<>();
-		for(TreeNode node : treeList){
-			strList.add(JSON.toJSONString(node));
-		}
-		String scheme_name = this.indiceDao.selectScheme_nameByScheme_id(Integer.parseInt(scheme_id));
+		//从session作用域中取出当前登录用户
 		JSONObject currentUser = (JSONObject) (request.getSession().getAttribute("currentUser"));
 		UserInfo user = JSON.parseObject(currentUser.toString(), UserInfo.class);
 		int user_id = user.getUser_id();
-		this.treeService.writeIntoExcel(treeList, Util.getCalcResultPath(request), scheme_name, user_id);//结果写入文件
+		List<TreeNode> treeList=this.treeService.getTreeList(dataFile, Integer.parseInt(scheme_id), user_id);
 		response.setContentType("text/json;charset=utf-8");
-		response.getWriter().write(JSON.toJSONString(strList));
+		if(treeList == null) {
+			response.getWriter().write(JSON.toJSONString(-1));
+		}else {
+			List<String> strList = new ArrayList<>();
+			for(TreeNode node : treeList){
+				strList.add(JSON.toJSONString(node));
+			}
+			String scheme_name = this.indiceDao.selectScheme_nameByScheme_id(Integer.parseInt(scheme_id));
+			this.treeService.writeIntoExcel(treeList, Util.getCalcResultPath(request), scheme_name, user_id);//结果写入文件
+			response.getWriter().write(JSON.toJSONString(strList));
+		}
 	}
 	
 	@RequestMapping("/getSchemeName.do")
