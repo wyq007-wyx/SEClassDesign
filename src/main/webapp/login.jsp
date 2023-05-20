@@ -17,7 +17,7 @@
                 <h1>欢迎登录</h1>
                 <p>没有帐号？<el-button id="regBtn" @click="registerDialogVisible = true" plain>注册</el-button>
                 </p>
-                <p>忘记密码？<el-button id="resetBtn" @click="clickReset" plain>重置</el-button>
+                <p>忘记密码？<el-button id="resetBtn" @click="chooseVisible = true" plain>重置</el-button>
                 </p>
             </div>
             <form id="reg-form" action="GetLogin.do" method="post">
@@ -126,6 +126,37 @@
                 <el-button @click="answerDialogVisible = false">取消</el-button>
             </span>
         </el-dialog>
+        <!--重置密码发送邮件的对话框-->
+        <el-dialog title="用户邮箱验证" :visible.sync="emailResetDialogVisible" width="30%" center>
+            <el-form ref="emailForm" :model="emailForm" class="demo-ruleForm">
+                    <el-form-item label="用户名">
+                        <el-input v-model="emailForm.username"></el-input>
+                    </el-form-item>
+                    <el-form-item label="邮箱">
+                        <el-input  v-model="emailForm.email" autocomplete="off"></el-input>
+                    </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="submitForm('emailForm')" style="margin-left: 30px; margin-right: 30px">
+                    下一步
+                </el-button>
+                <el-button @click="emailResetDialogVisible = false">取消</el-button>
+            </span>
+        </el-dialog>
+         <!--发送邮箱验证码的对话框-->
+         <el-dialog title="邮箱验证码发送" :visible.sync="emailCodeDialogVisible" width="30%" center>
+            <el-form ref="emailCodeForm" :model="emailCodeForm" class="demo-ruleForm">
+                    <el-form-item label="验证码">
+                        <el-input v-model="emailCodeForm.emailCode"></el-input>
+                    </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="submitForm('emailCodeForm')" style="margin-left: 30px; margin-right: 30px">
+                    下一步
+                </el-button>
+                <el-button @click="emailCodeDialogVisible = false">取消</el-button>
+            </span>
+        </el-dialog>
         <!-- 重置密码的对话框 -->
         <el-dialog title="重置密码" :visible.sync="resetDialogVisible" width="30%" center>
             <div>
@@ -147,6 +178,21 @@
                     重置
                 </el-button>
                 <el-button @click="resetDialogVisible = false">取消</el-button>
+            </span>
+        </el-dialog>
+        <!--选择重置密码的方式-->
+        <el-dialog title="选择重置密码的方式" :visible.sync="chooseVisible" width="30%" center>
+            <div style="margin-left:50px">
+                <template>
+                    <el-radio v-model="radio" label="1">密保问题找回</el-radio>
+                    <el-radio v-model="radio" label="2">邮箱验证码找回</el-radio>
+                </template>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="resetMethod" style="margin-left: 30px; margin-right: 30px">
+                    下一步
+                </el-button>
+                <el-button @click="chooseVisible = false">取消</el-button>
             </span>
         </el-dialog>
     </div>
@@ -245,7 +291,23 @@
                         user_id: '',
                         password: '',
                         checkPassword: ''
-                    }
+                    },
+                    emailForm:{
+                        username:'',
+                        email:''
+                    },
+                    emailCodeForm:{
+                        //邮箱验证码
+                         emailCode:''
+                    },
+                    //输入邮箱验证码的对话框是否可见
+                    emailCodeDialogVisible:false,
+                    //邮箱找回密码的对话框是否可见
+                    emailResetDialogVisible:false,
+                    //默认密保找回密码
+                    radio: '1',
+                    //选择框不可见
+                    chooseVisible:false
                 }
             },
             methods: {
@@ -361,7 +423,12 @@
                         if (valid) {
                             if (formName == 'registerForm') {
                                 _this.register();
-                            } else {
+                            } else if(formName=='emailForm'){
+                                _this.checkUserEmailMessage();//发送username,email
+                            }else if(formName=='emailCodeForm'){
+                                _this.checkEmailCode();//发送邮箱验证码
+                            }
+                            else {
                                 _this.resetPassword(); //向后端重置密码
                             }
                         } else {
@@ -398,6 +465,56 @@
                             Vue.prototype.$message.error('重置密码失败！');
                         }
                     })
+                },
+                //检验邮箱和用户名是否匹配
+                checkUserEmailMessage(){
+                    var _this = this;
+                    axios({
+                        method: 'post',
+                        url: _this.urlHeader + 'checkUserEmail.do',
+                        data: 'username=' + _this.emailForm.username + '&email=' + _this.emailForm.email
+                    }).then(function (resp) {
+                        if (resp.data != 0) {
+                            _this.resetForm.user_id=resp.data;
+                            Vue.prototype.$message({
+                                message: '验证码已经发送到您的邮箱,请查收！',
+                                type: 'success'
+                            });
+                            _this.emailResetDialogVisible = false; //关闭重置密码的对话框
+                            _this.emailCodeDialogVisible=true;//验证邮箱验证码的对话框开启
+                        } else {
+                            Vue.prototype.$message.error('用户名与邮箱不匹配！');
+                        }
+                    })
+                },
+                //检查邮箱验证码是否正确
+                checkEmailCode(){
+                    var _this = this;
+                    axios({
+                        method: 'post',
+                        url: _this.urlHeader + 'checkEmailCode.do',
+                        data: 'emailCode=' + _this.emailCodeForm.emailCode
+                    }).then(function (resp) {
+                        if (resp.data == 1) {
+                            Vue.prototype.$message({
+                                message: '邮箱验证通过！',
+                                type: 'success'
+                            });
+                            _this.emailCodeDialogVisible=false;//验证邮箱验证码的对话框开启
+                            _this.resetDialogVisible=true;//重置密码的对话框开启
+                        } else {
+                            Vue.prototype.$message.error('验证码错误！');
+                        }
+                    })
+                },
+                //选择重置方式
+                resetMethod(){
+                    if(this.radio==1){
+                        this.clickReset();
+                    }else{
+                        this.emailResetDialogVisible=true;
+                    }
+                    this.chooseVisible=false;
                 }
             }
         })

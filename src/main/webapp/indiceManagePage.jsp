@@ -929,8 +929,12 @@
                         }
                     });
                 } else {
-                    sessionStorage.setItem('jsontreelist', response);
-                    window.open("http://localhost:2008/SEClassDesign/resultManagePage.jsp");
+                	if(response == '-1'){
+                		this.$message.error('文件解析失败，叶子结点个数或名称出错！');
+                	}else{
+                		sessionStorage.setItem('jsontreelist', response);
+                    	window.open("http://localhost:2008/SEClassDesign/resultManagePage.jsp");
+                	}
                 }
 
             },
