@@ -33,7 +33,7 @@
                         创建新用户</el-button>
                     <!-- 创建新用户的对话框 -->
                     <el-dialog title="创建新用户" :visible.sync="insertDialogVisible" width="30%" center>
-                        <div style="height: 250px; overflow: auto">
+                        <div style="height: 190px; overflow: auto">
                             <el-form ref="createUserForm" :model="createUserForm" label-width="80px" :rules="userRule">
                                 <el-form-item label="用户名" prop="username">
                                     <el-input v-model="createUserForm.username"></el-input>
