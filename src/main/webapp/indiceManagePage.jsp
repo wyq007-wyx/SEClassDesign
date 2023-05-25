@@ -22,10 +22,6 @@
                         <el-menu-item index="1-1">所有体系模板</el-menu-item>
                         <el-menu-item index="1-2">所有体系实例</el-menu-item>
                     </el-submenu>
-                    <el-submenu index="2">
-                        <template slot="title"><i class="el-icon-menu"></i>体系树</template>
-                        <el-menu-item index="2-1">创建体系树</el-menu-item>
-                    </el-submenu>
                 </el-menu>
             </el-aside>
             <!-- 右半边 -->
@@ -424,9 +420,7 @@
                 } else if (index == '1-2') { //所有的体系实例
                     this.getSchemeInfo(1);
                     this.page.currentPage = 1;
-                } else { //创建体系树
-                    this.createNewScheme();
-                }
+                } 
             },
             //获取所有的算子
             getAllOperator() {
@@ -932,7 +926,10 @@
                 	if(response == '-1'){
                 		this.$message.error('文件解析失败，叶子结点个数或名称出错！');
                 	}else{
+                       
+                        //console.log('ssdjal','${requestScope.tableData}');
                 		sessionStorage.setItem('jsontreelist', response);
+                        //sessionStorage.setItem('tableData',);
                     	window.open("http://localhost:2008/SEClassDesign/resultManagePage.jsp");
                 	}
                 }
