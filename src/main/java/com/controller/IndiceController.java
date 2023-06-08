@@ -8,7 +8,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,11 +34,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dao.IndiceDao;
+import com.dao.ResultDao;
 import com.dao.TreeDao;
 import com.pojo.UserInfo;
 import com.util.Util;
 import com.pojo.IndiceInfo;
 import com.pojo.OperatorInfo;
+import com.pojo.Result;
 import com.pojo.SchemeInfo;
 
 @Controller
@@ -42,6 +50,8 @@ public class IndiceController {
 	private IndiceDao indiceDao;
 	@Autowired
 	private TreeDao treeDao;
+	@Autowired
+	private ResultDao resultDao;
 
 	/**
 	 * 获取所有的体系信息
@@ -533,5 +543,68 @@ public class IndiceController {
 
 		// 使用工具类直接将文件的字节复制到响应输出流中
 		FileCopyUtils.copy(new FileInputStream(file), response.getOutputStream());
+	}
+	
+	/**
+	 * 
+	 * @param request
+	 * @param response
+	 * @param scheme_id
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=getAllResultTime")
+	public void getAllResultTime(HttpServletResponse response, String scheme_id) throws IOException {
+		System.out.println("getTimeRequest");
+		List<Date> dateList = resultDao.selectTimeBySchemeId(Integer.parseInt(scheme_id));
+		
+		List<String> timeList = new ArrayList<>();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		for(Date d: dateList) {
+			timeList.add(sdf.format(d));
+		}
+		
+		response.getWriter().write(JSON.toJSONString(timeList));
+	}
+	
+	/**
+	 * 
+	 * @param response
+	 * @param scheme_id
+	 * @param time
+	 * @throws IOException
+	 * @throws NumberFormatException
+	 * @throws ParseException
+	 */
+	@RequestMapping(params = "request=getResult")
+	public void getAllResultTime(HttpServletResponse response, String scheme_id, String exec_time) throws IOException, NumberFormatException, ParseException {
+		System.out.println("getResultRequest");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		List<Result> resList = resultDao.selectResultBySchemeIdANDTime(Integer.parseInt(scheme_id), sdf.parse(exec_time));
+		
+		List<String> strResList = new ArrayList<>();
+		Map<Integer,List<Result>> map = new HashMap<>();
+		
+		for(Result res:resList) {
+			if(map.containsKey(res.getGroupId())) {
+				map.get(res.getGroupId()).add(res);
+			}else {
+				List<Result> list = new ArrayList<>();
+				list.add(res);
+				map.put(res.getGroupId(), list);
+			}
+		}
+		
+		for(int i : map.keySet()) {
+			List<Result> tmpList = map.get(i);
+			
+			List<String> strList = new ArrayList<>();
+			for(Result r:tmpList) {
+				strList.add(JSON.toJSONString(r));
+			}
+			strResList.add(JSON.toJSONString(strList));
+		}
+		
+		response.getWriter().write(JSON.toJSONString(strResList));
 	}
 }

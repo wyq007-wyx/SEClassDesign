@@ -7,23 +7,27 @@ import com.alibaba.fastjson.annotation.JSONField;
 public class Result {
 	private int id;// 主键
 	private int scheme_id;// 指标所属体系id
-	private String name;// 指标名
-	private double value;// 计算值
+	private String indice_name;// 指标名
+	private double indice_value;// 计算值
 	private int groupId;// 分组
 	 @JSONField(format = "yyyy-MM-dd HH:mm:ss") // 在时间属性上面加上该注解，前端可以自动解析
-	 private Date time;// 计算时间
+	 private Date exec_time;// 计算时间
 
 	public Result() {
 	}
+	
+	
 
-	public Result(int id, int scheme_id, String name, double value, int groupId, Date time) {
-		this.id = id;
+	public Result(int scheme_id, String indice_name, double indice_value, int groupId, Date exec_time) {
+		super();
 		this.scheme_id = scheme_id;
-		this.name = name;
-		this.value = value;
+		this.indice_name = indice_name;
+		this.indice_value = indice_value;
 		this.groupId = groupId;
-		this.time = time;
+		this.exec_time = exec_time;
 	}
+
+
 
 	public int getId() {
 		return id;
@@ -41,20 +45,20 @@ public class Result {
 		this.scheme_id = scheme_id;
 	}
 
-	public String getName() {
-		return name;
+	public String getIndice_name() {
+		return indice_name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setIndice_name(String indice_name) {
+		this.indice_name = indice_name;
 	}
 
-	public double getValue() {
-		return value;
+	public double getIndice_value() {
+		return indice_value;
 	}
 
-	public void setValue(double value) {
-		this.value = value;
+	public void setIndice_value(double indice_value) {
+		this.indice_value = indice_value;
 	}
 
 	public int getGroupId() {
@@ -65,21 +69,14 @@ public class Result {
 		this.groupId = groupId;
 	}
 
-	public Date getTime() {
-		return time;
+	public Date getExec_time() {
+		return exec_time;
 	}
 
-	public void setTime(Date time) {
-		this.time = time;
+	public void setExec_time(Date exec_time) {
+		this.exec_time = exec_time;
 	}
 
-	public Result(int scheme_id, String name, double value, int groupId, Date time) {
-		super();
-		this.scheme_id = scheme_id;
-		this.name = name;
-		this.value = value;
-		this.groupId = groupId;
-		this.time = time;
-	}
+	
 
 }

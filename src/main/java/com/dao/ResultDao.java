@@ -13,7 +13,10 @@ import org.springframework.stereotype.Repository;
 @Mapper
 public interface ResultDao {
 	//根据体系id和时间查询结果信息
-	List<Result> selectResultBySchemeIdANDTime(@Param("scheme_id") int scheme_id, @Param("time") String time);
+	List<Result> selectResultBySchemeIdANDTime(@Param("scheme_id") int scheme_id, @Param("exec_time") Date exec_time);
+	
+	//根据体系id获取计算时间
+	List<Date> selectTimeBySchemeId(@Param("scheme_id") int scheme_id);
 	
 	//插入结果信息
 	int insertResult(List<Result> resList);
