@@ -22,6 +22,10 @@
                         <el-menu-item index="1-1">所有体系模板</el-menu-item>
                         <el-menu-item index="1-2">所有体系实例</el-menu-item>
                     </el-submenu>
+                    <el-submenu index="2">
+                        <template slot="title"><i class="el-icon-setting"></i>算子管理</template>
+                        <el-menu-item index="2-1">用户所有算子</el-menu-item>
+                    </el-submenu>
                 </el-menu>
             </el-aside>
             <!-- 右半边 -->
@@ -29,18 +33,49 @@
                 <!-- 头 -->
                 <el-header style="font-size: 12px;">
                     <!-- 创建新体系的按钮 -->
-                    <el-button v-show="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
+                    <el-button v-if="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
                         @click="createNewScheme" plain>
                         创建新体系</el-button>
-                    <el-button v-show="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
+                    <el-button v-if="pageNo == '1-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
                         @click="importSchemeTree" plain>
                         导入体系树</el-button>
+                    <!-- 算子管理的按钮 -->
+                    <el-button v-if="pageNo == '2-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
+                        @click="clickAddUserOpBtn" plain>
+                        增加算子</el-button>
+                    <el-button v-if="pageNo == '2-1'" type="primary" icon="el-icon-delete" style="margin-top: 10px"
+                        @click="deleteOperators" plain>
+                        删除所选算子</el-button>
+                    <!-- 增加算子 -->
+                    <el-dialog title="增加算子" :visible.sync="addUserOpDialogVisible" width="25%" center>
+                        <div style="height: 250px; overflow: auto; text-align: center;">
+                            <el-checkbox-group v-model="selectedAddOperators">
+                                <div v-for="operator in userNotHaveOperators" :key="operator.operator_id"
+                                    style="margin-bottom: 20px;">
+                                    <el-checkbox :label="operator.operator_id" border>
+                                        {{ operator.operator_description }}
+                                    </el-checkbox>
+                                </div>
+                                <!--
+                                <el-checkbox v-for="operator in userNotHaveOperators" :label="operator.operator_id"
+                                    :key="operator.operator_id">
+                                    {{operator.operator_description}}</el-checkbox>
+                                -->
+                            </el-checkbox-group>
+                        </div>
+                        <span slot="footer" class="dialog-footer">
+                            <el-button type="primary" @click="addOperators"
+                                style="margin-left: 30px; margin-right: 30px">增加
+                            </el-button>
+                            <el-button @click="addUserOpDialogVisible = false; selectedAddOperators=[];">取消</el-button>
+                        </span>
+                    </el-dialog>
                     <!-- 导入体系树，xml文件 -->
                     <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
                         <el-upload ref="upload" :limit="1" accept="upload.accept" :action="upload.url"
-                            :data="upload.additionalData" :disabled="upload.isUploading" name="treeFile" :before-upload="beforeAvatarUpload"
-                            :on-progress="handleFileUploadProgress" :on-success="handleFileSuccess" :auto-upload="false"
-                            drag>
+                            :data="upload.additionalData" :disabled="upload.isUploading" name="treeFile"
+                            :before-upload="beforeAvatarUpload" :on-progress="handleFileUploadProgress"
+                            :on-success="handleFileSuccess" :auto-upload="false" drag>
                             <i class="el-icon-upload"></i>
                             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
                             <div class="el-upload__tip" style="color:red" slot="tip">{{this.upload.tips}}</div>
@@ -116,7 +151,7 @@
                         </el-form-item>
                     </el-form>
                     <!-- 显示所有体系信息 -->
-                    <el-table height="66vh"
+                    <el-table height="66vh" key="templates"
                         :data="schemeTableData.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)">
                         <el-table-column type="index" align="center"></el-table-column>
                         <el-table-column prop="scheme_id" label="模板号" align="center">
@@ -144,7 +179,7 @@
                             @click="clickAddIndiceBtn" plain>
                             创建新指标</el-button>
                         <!-- 显示所有指标信息 -->
-                        <el-table :data="singleSchemeDetailInfo" height="90%">
+                        <el-table :data="singleSchemeDetailInfo" key="templateIndices" height="90%">
                             <el-table-column type="index" align="center"></el-table-column>
                             <el-table-column prop="indice_id" label="指标id" align="center">
                             </el-table-column>
@@ -176,7 +211,8 @@
                                         <el-input v-model="indiceForm.indice_name"></el-input>
                                     </el-form-item>
                                     <el-form-item label="父节点id" prop="father_id" style="width: 90%">
-                                        <el-select v-model="indiceForm.father_id" placeholder="请选择父节点" :disabled="indiceForm.father_id == -1 ? true : false" style="width: 100%">
+                                        <el-select v-model="indiceForm.father_id" placeholder="请选择父节点"
+                                            :disabled="indiceForm.father_id == -1 ? true : false" style="width: 100%">
                                             <el-option v-for="item in singleSchemeDetailInfo" :label="item.indice_id"
                                                 :value="item.indice_id" :key="item.indice_id">
                                             </el-option>
@@ -210,7 +246,7 @@
                         </el-form-item>
                     </el-form>
                     <!-- 显示所有体系实例信息 -->
-                    <el-table height="66vh"
+                    <el-table height="66vh" key="instance"
                         :data="schemeTableData.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)">
                         <el-table-column type="index" align="center"></el-table-column>
                         <el-table-column prop="scheme_id" label="实例号" align="center">
@@ -238,7 +274,7 @@
                             @click="clickAddIndiceBtn" plain>
                             创建新指标</el-button>
                         <!-- 显示所有指标信息 -->
-                        <el-table :data="singleSchemeDetailInfo" height="90%">
+                        <el-table :data="singleSchemeDetailInfo" key="instanceIndices" height="90%">
                             <el-table-column type="index" align="center"></el-table-column>
                             <el-table-column prop="indice_id" label="指标id" align="center">
                             </el-table-column>
@@ -280,15 +316,17 @@
                                         </el-slider>
                                     </el-form-item>
                                     <el-form-item label="父节点id" prop="father_id" style="width: 90%">
-                                        <el-select v-model="indiceForm.father_id" placeholder="请选择父节点" :disabled="indiceForm.father_id == -1 ? true : false" style="width: 100%">
+                                        <el-select v-model="indiceForm.father_id" placeholder="请选择父节点"
+                                            :disabled="indiceForm.father_id == -1 ? true : false" style="width: 100%">
                                             <el-option v-for="item in singleSchemeDetailInfo" :label="item.indice_id"
                                                 :value="item.indice_id" :key="item.indice_id">
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
                                     <el-form-item label="算子" prop="operator_id" style="width: 90%">
-                                        <el-select v-model="indiceForm.operator_id" placeholder="请选择算子" style="width: 100%">
-                                            <el-option v-for="item in operators" :label="item.operator_description"
+                                        <el-select v-model="indiceForm.operator_id" placeholder="请选择算子"
+                                            style="width: 100%">
+                                            <el-option v-for="item in userOperators" :label="item.operator_description"
                                                 :value="item.operator_id" :key="item.operator_id">
                                             </el-option>
                                         </el-select>
@@ -308,12 +346,27 @@
                         </el-drawer>
                     </el-drawer>
                 </el-main>
-
+                <!-- 算子管理模块 -->
                 <el-main v-else>
-
+                    <el-table ref="multipleTable" height="66vh" key="operators"
+                        :data="userOperators.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)"
+                        tooltip-effect="dark" @selection-change="handleSelectionChange">
+                        <el-table-column type="selection" width="200px">
+                        </el-table-column>
+                        <el-table-column type="index" width="200px">
+                        </el-table-column>
+                        <el-table-column prop="operator_description" label="算子信息" align="center">
+                        </el-table-column>
+                        <el-table-column label="算子描述" :formatter="opContentFormatter" align="center">
+                        </el-table-column>
+                    </el-table>
+                    <div style="margin-top: 20px">
+                        <el-button @click="toggleSelection(1)">全选</el-button>
+                        <el-button @click="toggleSelection(0)">取消选择</el-button>
+                    </div>
                 </el-main>
                 <!--分页工具条-->
-                <el-footer v-if="pageNo=='1-1' || pageNo=='1-2'">
+                <el-footer>
                     <div class="block">
                         <el-pagination @current-change="handleCurrentChange" :current-page="page.currentPage"
                             :page-size="page.pageSize" layout="total, prev, pager, next, jumper" :total="page.total">
@@ -354,6 +407,16 @@
                 },
                 //所有的算子
                 operators: [],
+                // 用户的所有算子
+                userOperators: [],
+                // 用户没有的算子
+                userNotHaveOperators: [],
+                //增加算子的对话框是否显示
+                addUserOpDialogVisible: false,
+                //要增加的算子的id
+                selectedAddOperators: [],
+                //记录多选表格的选中行,用于删除算子
+                multipleSelection: [],
                 //表格用的体系信息
                 schemeTableData: [],
                 //查询用的体系信息
@@ -407,8 +470,10 @@
             this.uploadAdditionalData = {
                 user_id: this.currentUser.user_id
             }; //上传文件时附带的数据
-            this.getSchemeInfo(0);
+            this.getSchemeInfo(0); //获取体系模板信息
             this.getAllOperator(); //获取所有的算子
+            this.getUserOperators(); //获取用户拥有的算子信息
+            this.getUserNotHaveOperators(); //获取用户没有的算子信息
         },
         methods: {
             //页面切换
@@ -420,7 +485,11 @@
                 } else if (index == '1-2') { //所有的体系实例
                     this.getSchemeInfo(1);
                     this.page.currentPage = 1;
-                } 
+                } else {
+                    this.getUserOperators(); //获取用户拥有的算子信息
+                    this.getUserNotHaveOperators(); //获取用户没有的算子信息
+                    this.page.currentPage = 1;
+                }
             },
             //获取所有的算子
             getAllOperator() {
@@ -432,6 +501,153 @@
                     console.log('获取到了所有算子信息:\n' + resp.data);
                     _this.operators = resp.data;
                 })
+            },
+            //获取用户的所有算子
+            getUserOperators() {
+                console.log("获取用户所有算子信息");
+                var _this = this;
+                axios({
+                    method: 'post',
+                    url: _this.urlHeader + 'request=getUserOperators',
+                    data: "user_id=" + _this.currentUser.user_id
+                }).then(function (resp) {
+                    console.log('获取到了用户的所有算子信息:\n' + resp.data);
+                    _this.userOperators = resp.data;
+                    _this.page.total = _this.userOperators.length;
+                })
+            },
+            //获取用户没有的所有算子
+            getUserNotHaveOperators() {
+                var _this = this;
+                axios({
+                    method: 'post',
+                    url: _this.urlHeader + 'request=getUserNotHaveOperators',
+                    data: "user_id=" + _this.currentUser.user_id
+                }).then(function (resp) {
+                    console.log('获取到了用户没有的所有算子信息:\n' + resp.data);
+                    _this.userNotHaveOperators = resp.data;
+                })
+            },
+            clickAddUserOpBtn() {
+                if (this.userNotHaveOperators.length == 0) {
+                    this.$message({
+                        message: '您已配置所有算子',
+                        type: 'success'
+                    });
+                } else {
+                    this.addUserOpDialogVisible = true;
+                }
+            },
+            //为用户增添算子
+            addOperators() {
+                var _this = this;
+                var data = "user_id=" + this.currentUser.user_id + "&selectedAddOps=" + JSON.stringify(this
+                    .selectedAddOperators); //把数组转换为JSON字符串
+                axios({
+                    method: 'post',
+                    url: _this.urlHeader + 'request=addUserOperators',
+                    data: data
+                }).then(function (resp) {
+                    console.log("获取到了……\n" + resp.data); //增加成功
+                    if (resp.data > 0) {
+                        //刷新页面
+                        Vue.prototype.$message({
+                            message: '增加了' + resp.data + '个算子！',
+                            type: 'success'
+                        });
+                        _this.getUserOperators();
+                        _this.getUserNotHaveOperators();
+                        //关闭对话框
+                        _this.addUserOpDialogVisible = false;
+                        //清空列表
+                        _this.selectedAddOperators = [];
+                    } else {
+                        this.$message.error('增加失败');
+                    }
+                })
+            },
+            //删除算子
+            deleteOperators() {
+                if (this.multipleSelection.length == 0) { //若是没有选中任何算子
+                    Vue.prototype.$message({
+                        type: 'warning',
+                        message: '您尚未选中任何算子！'
+                    });
+                } else {
+                    Vue.prototype.$confirm('此操作将删除所选算子，是否删除？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning',
+                        cancelButtonClass: 'el-button--default el-button--small el-button--cancel'
+                    }).then(() => { //点击了确定
+                        //删除用户所选的算子
+                        var _this = this;
+                        var data = "user_id=" + this.currentUser.user_id + "&selectedDelOps=" + JSON
+                            .stringify(this.multipleSelection); //把数组转换为JSON字符串
+                        axios({
+                            method: "post",
+                            url: _this.urlHeader + "request=deleteUserOperators",
+                            data: data
+                        }).then(function (resp) {
+                            console.log("获取到了……\n" + resp.data); //删除成功
+                            if (resp.data > 0) {
+                                //刷新页面
+                                Vue.prototype.$message({
+                                    message: '删除成功！',
+                                    type: 'success'
+                                });
+                                //刷新页面
+                                _this.getUserOperators();
+                                _this.getUserNotHaveOperators();
+                                //取消选择
+                                _this.toggleSelection(0);
+                            } else {
+                                this.$message.error('删除失败');
+                            }
+                        })
+                    }).catch(() => { //点击了取消
+                        Vue.prototype.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    });
+                }
+            },
+            //当多选表格的选中状态改变时会调用这个函数
+            toggleSelection(option) {
+                if (option == 1) { //全选
+                    this.userOperators.forEach(row => {
+                        //该方法用于多选表格，切换某一行的选中状态
+                        this.$refs.multipleTable.toggleRowSelection(row, true); //如果设置了第二个参数则是设置这一行选中与否
+                    });
+                } else { //取消选择
+                    this.$refs.multipleTable.clearSelection();
+                }
+            },
+            //多选表单，选择状态变化时执行的操作
+            handleSelectionChange(val) { //这个val是一个列表，记录了当前所有被选中的行的数据
+                this.multipleSelection = val;
+            },
+            //格式化算子描述内容
+            opContentFormatter(row, column, cellValue, index) {
+                switch (row.operator_id) {
+                    case 1:
+                        return '相加';
+                    case 2:
+                        return '相减';
+                    case 3:
+                        return '相乘';
+                    case 4:
+                        return '相除';
+                    case 5:
+                        return '取最大值';
+                    case 6:
+                        return '取最小值';
+                    case 7:
+                        return '取平均值';
+                    default:
+                        return '错误的算子';
+                }
             },
             //获取所有体系信息
             getSchemeInfo(isInstance) {
@@ -609,7 +825,6 @@
                 this.indiceForm.scheme_id = this.schemeIDForDisplay;
                 this.innerDrawerVisible = true; //显示内部抽屉
             },
-
             //点击了修改指标的按钮
             clickChangeIndiceBtn(row) {
                 this.innerDrawerTitle = '修改指标';
@@ -641,9 +856,9 @@
                             type: 'success'
                         });
                         _this.getSingleSchemeDetailInfo(_this.indiceForm.scheme_id); //刷新
-                    }else if(resp.data == -1){
+                    } else if (resp.data == -1) {
                         _this.$message.error('失败！父节点不存在');
-                    }else{
+                    } else {
                         _this.$message.error('创建失败！');
                     }
                     _this.innerDrawerVisible = false; //关闭表单
@@ -710,7 +925,9 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,10}$/,
                     inputErrorMessage: '体系名称格式不正确'
-                }).then(({value}) => {
+                }).then(({
+                    value
+                }) => {
                     var data = {
                         user_id: _this.currentUser.user_id,
                         scheme_id: row.scheme_id,
@@ -730,7 +947,7 @@
                                 type: 'success'
                             });
                             _this.getSchemeInfo(_this.pageNo == '1-1' ? 0 : 1);
-                        }else{
+                        } else {
                             _this.$message.error('修改失败！');
                         }
                     })
@@ -795,7 +1012,9 @@
                     cancelButtonText: '取消',
                     inputPattern: /^[a-zA-Z0-9\u4E00-\u9FA5]{1,20}$/,
                     inputErrorMessage: '体系实例名称格式不正确'
-                }).then(({value}) => {
+                }).then(({
+                    value
+                }) => {
                     data.scheme_name = value;
                     //创建新体系实例
                     axios({
@@ -851,12 +1070,12 @@
                 });
             },
             //格式化显示算子内容
-            formatOperator(row, column, cellValue, index){
-                if(typeof(row.operator_id) == 'undefined'){
+            formatOperator(row, column, cellValue, index) {
+                if (typeof (row.operator_id) == 'undefined') {
                     return '无';
-                }else{
-                    for(var operator of this.operators){
-                        if(operator.operator_id == row.operator_id){
+                } else {
+                    for (var operator of this.operators) {
+                        if (operator.operator_id == row.operator_id) {
                             return operator.operator_description;
                         }
                     }
@@ -889,15 +1108,16 @@
             //上传文件前检验文件类型
             beforeAvatarUpload(file) {
                 var fileType1 = (file.type === 'text/xml' || file.type === 'application/json');
-                var fileType2 = (file.type === 'application/vnd.ms-excel' || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                if(this.pageNo == '1-1'){
-                    if(!fileType1){
+                var fileType2 = (file.type === 'application/vnd.ms-excel' || file.type ===
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                if (this.pageNo == '1-1') {
+                    if (!fileType1) {
                         this.$message.error('上传文件只能是 JSON / XML 格式!');
                         return false;
                     }
-                    
-                }else{
-                    if(!fileType2){
+
+                } else {
+                    if (!fileType2) {
                         this.$message.error('上传文件只能是 XLSX / XLS 格式!');
                         return false;
                     }
@@ -923,15 +1143,15 @@
                         }
                     });
                 } else {
-                	if(response == '-1'){
-                		this.$message.error('文件解析失败，叶子结点个数或名称出错！');
-                	}else{
-                       
+                    if (response == '-1') {
+                        this.$message.error('文件解析失败，叶子结点个数或名称出错！');
+                    } else {
+
                         //console.log('ssdjal','${requestScope.tableData}');
-                		sessionStorage.setItem('jsontreelist', response);
+                        sessionStorage.setItem('jsontreelist', response);
                         //sessionStorage.setItem('tableData',);
-                    	window.open("http://localhost:2008/SEClassDesign/resultManagePage.jsp");
-                	}
+                        window.open("http://localhost:2008/SEClassDesign/resultManagePage.jsp");
+                    }
                 }
 
             },
