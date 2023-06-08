@@ -2,9 +2,11 @@ package com.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +21,10 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.fastjson.JSON;
 import com.dao.IndiceDao;
+import com.dao.ResultDao;
 import com.dao.TreeDao;
 import com.pojo.IndiceInfo;
+import com.pojo.Result;
 import com.pojo.TreeNode;
 import com.util.Util;
 
@@ -36,6 +40,9 @@ public class TreeService {
 
 	@Resource
 	private IndiceDao indiceDao;
+
+	@Resource
+	private ResultDao resultDao;
 
 	private TreeNode tree = null;
 
@@ -240,7 +247,7 @@ public class TreeService {
 	 * @throws BiffException
 	 * @throws IOException
 	 */
-	public List<TreeNode> getTreeList(File dataFile, int scheme_id, int user_id,List<List<IndiceInfo>> ret) {
+	public List<TreeNode> getTreeList(File dataFile, int scheme_id, int user_id, List<List<IndiceInfo>> ret) {
 		List<String> indiceNames = new ArrayList<>();// 指标名列表
 		List<List<Double>> indiceValues = new ArrayList<>();// 指标值列表
 		this.readExcel(dataFile, indiceNames, indiceValues);// 读取Excel文件中的值
@@ -251,19 +258,37 @@ public class TreeService {
 		List<TreeNode> treeList = new ArrayList<>();
 		IndiceInfo root = this.treeDao.selectRoot(scheme_id, -1);
 		for (List<Double> indiceValue : indiceValues) {
-			List<IndiceInfo> ans = new ArrayList<>();//获取一颗树所有节点的Indice
+			List<IndiceInfo> ans = new ArrayList<>();// 获取一颗树所有节点的Indice
 			Map<String, Double> map = new HashMap<>();
 			for (int i = 0; i < indiceValue.size(); i++) {
 				map.put(indiceNames.get(i), indiceValue.get(i));
 			}
 			TreeNode treeRoot = new TreeNode();
-			this.calculate(root, map, treeRoot,ans);
-			//ans.add(root);
+			this.calculate(root, map, treeRoot, ans);
+			// ans.add(root);
 			treeList.add(treeRoot);
 			root = this.treeDao.selectRoot(scheme_id, -1);
-			Collections.sort(ans);//节点id小的排在前面
+			Collections.sort(ans);// 节点id小的排在前面
 			ret.add(ans);
 		}
+
+		Date currentTime = new Date();
+		int groupId = 0;
+		// 将运行的中间结果存入数据库
+		// 遍历每一条记录
+		System.out.println("运行开始");
+		for (List<IndiceInfo> record : ret) {
+			System.out.println("运行。。。");
+			// 遍历每一条记录的所有指标
+			List<Result> resList = new ArrayList();
+			for (IndiceInfo indice : record) {
+				Result r = new Result(scheme_id, indice.getIndice_name(), indice.getIndice_value(), groupId, currentTime);
+				resList.add(r);
+			}
+			resultDao.insertResult(resList);
+			groupId++;
+		}
+
 		return treeList;
 	}
 
@@ -315,7 +340,7 @@ public class TreeService {
 	 * @param map  指标名称和指标值的映射
 	 * @return 根节点的值
 	 */
-	public double calculate(IndiceInfo node, Map<String, Double> map, TreeNode fatherNode,List<IndiceInfo> ans) {
+	public double calculate(IndiceInfo node, Map<String, Double> map, TreeNode fatherNode, List<IndiceInfo> ans) {
 		double result = 0.0;
 		List<IndiceInfo> children = this.treeDao.selectChildrenByFatherId(node.getIndice_id());// 获取所有的子节点
 		List<TreeNode> childrenNodes = new ArrayList<>();
@@ -324,10 +349,10 @@ public class TreeService {
 			result = map.get(node.getIndice_name());
 			double ret = Double.parseDouble(String.format("%.2f", result));
 			node.setIndice_value(result);// 保存中间结果
-			fatherNode.setName(node.getIndice_name()+"："+node.getIndice_value());// 设置treenode的名称
+			fatherNode.setName(node.getIndice_name() + "：" + node.getIndice_value());// 设置treenode的名称
 			fatherNode.setIndice(node);// treenode的indice
 			fatherNode.setChildren(childrenNodes);// treenode的children
-			ans.add(node);//添加指标
+			ans.add(node);// 添加指标
 			return ret;
 		}
 
@@ -336,44 +361,44 @@ public class TreeService {
 			double sum = 0.0;
 			for (IndiceInfo child : children) {
 				TreeNode tnode = new TreeNode();
-				sum += this.calculate(child, map, tnode,ans);
+				sum += this.calculate(child, map, tnode, ans);
 				childrenNodes.add(tnode);
 			}
 			result = sum / children.size();
 			node.setIndice_value(Double.parseDouble(String.format("%.2f", result)));// 保存中间结果
 			fatherNode.setChildren(childrenNodes);
 			fatherNode.setIndice(node);
-			fatherNode.setName(node.getIndice_name()+"："+node.getIndice_value());
+			fatherNode.setName(node.getIndice_name() + "：" + node.getIndice_value());
 		} else if (operator_id == 1) {
 			TreeNode tnode = new TreeNode();
-			result = this.calculate(children.get(0), map, tnode,ans) * children.get(0).getIndice_weight() / 100;
+			result = this.calculate(children.get(0), map, tnode, ans) * children.get(0).getIndice_weight() / 100;
 			childrenNodes.add(tnode);
 			for (int i = 1; i < children.size(); i++) {
 				TreeNode tnode1 = new TreeNode();
 				result = this.getResult(result, operator_id,
-						this.calculate(children.get(i), map, tnode1,ans) * children.get(i).getIndice_weight() / 100);
+						this.calculate(children.get(i), map, tnode1, ans) * children.get(i).getIndice_weight() / 100);
 				childrenNodes.add(tnode1);
 			}
 			node.setIndice_value(Double.parseDouble(String.format("%.2f", result)));// 保存中间结果
 			fatherNode.setChildren(childrenNodes);
 			fatherNode.setIndice(node);
-			fatherNode.setName(node.getIndice_name()+"："+node.getIndice_value());
+			fatherNode.setName(node.getIndice_name() + "：" + node.getIndice_value());
 		} else {
 			TreeNode tnode = new TreeNode();
-			result = this.calculate(children.get(0), map, tnode,ans);
+			result = this.calculate(children.get(0), map, tnode, ans);
 			childrenNodes.add(tnode);
 			for (int i = 1; i < children.size(); i++) {
 				TreeNode tnode1 = new TreeNode();
-				result = this.getResult(result, operator_id, this.calculate(children.get(i), map, tnode1,ans));
+				result = this.getResult(result, operator_id, this.calculate(children.get(i), map, tnode1, ans));
 				childrenNodes.add(tnode1);
 			}
 			node.setIndice_value(Double.parseDouble(String.format("%.2f", result)));// 保存中间结果
 			fatherNode.setChildren(childrenNodes);
 			fatherNode.setIndice(node);
-			fatherNode.setName(node.getIndice_name()+"："+node.getIndice_value());
-			
+			fatherNode.setName(node.getIndice_name() + "：" + node.getIndice_value());
+
 		}
-		ans.add(node);//添加指标
+		ans.add(node);// 添加指标
 		return result;
 	}
 
