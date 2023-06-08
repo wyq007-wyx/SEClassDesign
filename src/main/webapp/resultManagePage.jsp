@@ -20,22 +20,10 @@
                 <!-- 所有模板信息 -->
                 <el-main>
                     <!-- 显示所有体系信息 -->
-                    <!-- <el-table height="77vh"
-                        :data="schemeTableData.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)">
-                        <el-table-column label="序号" type="index" width="400" align="center"></el-table-column>
-                        <el-table-column prop="indice.indice_value" label="最终结果"  align="center">
-                        </el-table-column>
-                        <el-table-column label="操作"  align="center" fixed="right">
-                            <template slot-scope="scope">
-                                <el-button size="mini" @click="displaySchemeByTree(scope.row)" plain>体系树
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table> -->
                     <el-table height="77vh"
                         :data="tableData.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)">
                         <template>
-                            <el-table-column label="序号" type="index" v-bind="index" align="center"></el-table-column>
+                            <el-table-column label="序号" type="index" align="center"></el-table-column>
                             <el-table-column align="center"
                             v-for="(column, columnIndex) in tableData[0]"
                             :key="columnIndex"
@@ -162,9 +150,7 @@
             },
             //以体系树形式展示
             displaySchemeByTree(row) {
-                console.log('展示体系树');
-                var tindex=(this.page.currentPage-1)*this.page.pageSize+this.index;
-                var tree=JSON.stringify(this.treeStructlist[tindex]);
+                var tree=JSON.stringify(this.treeStructlist[this.tableData.indexOf(row)]);
                 sessionStorage.setItem('chosentree',tree);
                 window.location.href = "http://localhost:2008/SEClassDesign/resultTree.jsp";
             },
@@ -178,11 +164,9 @@
             getColumns(){
                 if(this.treeStructlist!=null&&this.treeStructlist!=[]){
                     this.tree_struct=this.treeStructlist[0];
-
                 }
             },
             //获取列名称
-
         }
     })
 </script>

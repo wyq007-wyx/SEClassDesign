@@ -76,7 +76,64 @@ public class IndiceController {
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(data));
 	}
-
+	/**
+	 * 获取一名用户的所有的算子
+	 * @param user_id 用户id
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=getUserOperators")
+	public void getUserOperators(String user_id, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=getUserOperators的url请求");
+		List<OperatorInfo> data = this.indiceDao.selectUserOperators(Integer.parseInt(user_id));
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(data));
+	}
+	/**
+	 * 获取一名用户没有的算子
+	 * @param user_id 用户id
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=getUserNotHaveOperators")
+	public void getUserNotHaveOperators(String user_id, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=getUserNotHaveOperators的url请求");
+		List<OperatorInfo> data = this.indiceDao.selectUserNotHaveOperators(Integer.parseInt(user_id));
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(data));
+	}
+	/**
+	 * 为用户增添算子
+	 * @param user_id 用户id
+	 * @param selectedAddOps 要增添的算子的id
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=addUserOperators")
+	public void addUserOperators(String user_id, String selectedAddOps, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=addUserOperators的url请求");
+		int id = Integer.parseInt(user_id);
+		List<Integer> list = JSONObject.parseArray(selectedAddOps, Integer.class);//解析出要删除的用户的算子
+		int num = this.indiceDao.addUserOperators(id, list);
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(num));
+	}
+	/**
+	 * 删除用户的算子
+	 * @param user_id 用户id
+	 * @param selectedDelOps 用户选中的要删除算子
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=deleteUserOperators")
+	public void deleteUserOperators(String user_id, String selectedDelOps, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=deleteUserOperators的url请求");
+		int id = Integer.parseInt(user_id);
+		List<OperatorInfo> list = JSONObject.parseArray(selectedDelOps, OperatorInfo.class);//解析出要删除的用户的算子
+		int num = this.indiceDao.deleteUserOperators(id, list);
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(num));
+	}
 	/**
 	 * 退出登录
 	 * 

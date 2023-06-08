@@ -12,10 +12,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="selectSchemeInfoById" parameterType="int" resultType="com.pojo.SchemeInfo">
 		select * from scheme where scheme_id = #{scheme_id}
 	</select>
+	
 	<!-- 根据体系id查询所有的体系模板 -->
 	<select id="selectSchemeTemplateInfoById" parameterType="int" resultType="com.pojo.SchemeInfo">
 		select * from scheme where scheme_id = #{scheme_id} and isInstance = 0
 	</select>
+	
 	<!-- 根据体系id查询所有的体系实例 -->
 	<select id="selectSchemeInstanceInfoById" parameterType="int" resultType="com.pojo.SchemeInfo">
 		select * from scheme where scheme_id = #{scheme_id} and isInstance = 1
@@ -25,6 +27,38 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="selectAllOperator" resultType="com.pojo.OperatorInfo">
 		select * from operator
 	</select>
+	<!-- 获取一个用户的所有算子 -->
+	<select id="selectUserOperators" parameterType="int" resultType="com.pojo.OperatorInfo">
+		select operator.* from user_operator, operator
+		where user_operator.user_id = #{user_id} and user_operator.operator_id = operator.operator_id
+	</select>
+	
+	<!-- 获取一个用户没有的所有算子 -->
+	<select id="selectUserNotHaveOperators" parameterType="int" resultType="com.pojo.OperatorInfo">
+		select operator.* from operator
+		where operator.operator_id
+		not in
+		(select user_operator.operator_id from user_operator where user_id = #{user_id})
+	</select>
+	<!-- 为用户批量增加算子 -->
+	<insert id="addUserOperators">
+		insert into user_operator (user_id, operator_id)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{user_id, jdbcType=INTEGER},
+			#{item, jdbcType=INTEGER})
+		</foreach>
+	</insert>
+	<!-- 为用户批量删除算子 -->
+	<insert id="deleteUserOperators">
+		delete from user_operator
+		where user_id = #{user_id} and operator_id in
+		(
+		<foreach collection="list" item="item" index="index" separator=",">
+			#{item.operator_id, jdbcType=INTEGER}
+		</foreach>
+		)
+	</insert>
 	<!-- 修改当前用户信息 -->
 	<update id="updateCurrentUserInfo" parameterType="com.pojo.UserInfo">
 		update user
