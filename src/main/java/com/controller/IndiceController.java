@@ -279,7 +279,11 @@ public class IndiceController {
 		BufferedReader br = request.getReader();
 		String line = br.readLine();
 		SchemeInfo scheme = JSON.parseObject(line, SchemeInfo.class);// 把JSON字符串解析为JavaBean
-		int num = this.indiceDao.updateSchemeInfo(scheme);
+		List<SchemeInfo> list = this.indiceDao.selectRenamedScheme(scheme);// 判断该用户下是否存在同名体系的模板或实例
+		int num = -1;
+		if(list.size() == 0) {//若没有重名体系
+			num = this.indiceDao.updateSchemeInfo(scheme);
+		}
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(num));
 	}

@@ -278,7 +278,7 @@ public class TreeService {
 		for (List<IndiceInfo> record : ret) {
 			System.out.println("运行。。。");
 			// 遍历每一条记录的所有指标
-			List<Result> resList = new ArrayList();
+			List<Result> resList = new ArrayList<>();
 			for (IndiceInfo indice : record) {
 				Result r = new Result(scheme_id, indice.getIndice_name(), indice.getIndice_value(), groupId, currentTime);
 				resList.add(r);
@@ -443,7 +443,7 @@ public class TreeService {
 	 * @throws Exception
 	 */
 	public void writeIndiceName(WritableSheet sheet, TreeNode node) throws Exception {
-		sheet.addCell(new Label(colIndex++, 0, node.getName()));// 添加单元格
+		sheet.addCell(new Label(colIndex++, 0, node.getIndice().getIndice_name()));// 添加单元格
 		List<TreeNode> children = node.getChildren();// 获取孩子
 		if (children == null) {
 			return;

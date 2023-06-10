@@ -1,3 +1,4 @@
+      
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
     <html>
@@ -213,7 +214,7 @@
                                 <div>
                                     <el-form ref="addOrChangeIndiceForm" :model="indiceForm" label-width="25%">
                                         <el-form-item label="指标名称" prop="indice_name" style="width: 90%">
-                                            <el-input v-model="indiceForm.indice_name"></el-input>
+                                            <el-input v-model="indiceForm.indice_name" disabled></el-input>
                                         </el-form-item>
                                         <el-form-item label="父节点id" prop="father_id" style="width: 90%">
                                             <el-select v-model="indiceForm.father_id" placeholder="请选择父节点"
@@ -608,10 +609,16 @@
                         confirmButtonText: '确定',
                         cancelButtonText: '取消'
                     }).then(_ => {
-                        //成功操作
-                        console.log('点击确定，运行时间=' + _this.execTimeForResult);
-                        //获取运算结果
-                        this.getResult();
+                        if(_this.execTimeForResult==''){
+                        	this.$message({
+                                showClose: true,
+                                message: '没有选择运行时间！',
+                                type: 'error'
+                              });
+                        }else{
+                        	//获取运算结果
+                            this.getResult();
+                        }
                     }).catch(_ => {
                         //取消操作
                         console.log('取消');
@@ -660,9 +667,18 @@
                         cancelButtonText: '取消'
                     }).then(_ => {
                         //成功操作
-                        console.log('点击确定，查看体系scheme_id=' + _this.schemeIDForResult);
-                        //根据id查询时间
-                        this.getAllResultTimeOfScheme();
+                        //console.log('点击确定，查看体系scheme_id=' + _this.schemeIDForResult);
+                        if(_this.schemeIDForResult==''){
+                        	this.$message({
+                                showClose: true,
+                                message: '没有选择体系！',
+                                type: 'error'
+                              });
+                        }else{
+                        	 //根据id查询时间
+                            this.getAllResultTimeOfScheme();
+                        }
+                       
                     }).catch(_ => {
                         //取消操作
                         console.log('取消');
@@ -924,6 +940,10 @@
                 },
                 //修改信息
                 changeInfo(param) {
+                	if(this.changeUserForm.username==''||this.changeUserForm.password==''||this.changeUserForm.email==''){
+                		this.$message.error('修改失败，信息不完整！');
+                		return;
+                	}
                     //准备数据
                     var url;
                     var data;
@@ -969,7 +989,11 @@
                             '&isInstance=' + isInstance
                     }).then(function (resp) {
                         console.log("获取到了……\n" + resp.data);
-                        _this.templateTableData = resp.data;
+                        if(isInstance == 0){
+                    	   _this.templateTableData = resp.data;
+                    	}else{
+                    	   _this.instanceTableData = resp.data;
+                        }
                         let len = resp.data.length; //判断查询到几条记录
                         _this.page.total = len;
                         console.log(len);
@@ -1008,8 +1032,10 @@
                 //点击了新增指标的按钮
                 clickAddIndiceBtn() {
                     this.innerDrawerTitle = '新增指标';
-                    this.indiceForm = {};
-                    this.indiceForm.scheme_id = this.schemeIDForDisplay;
+                    this.indiceForm = {
+                         indice_name: "new node",
+                         scheme_id: this.schemeIDForDisplay
+                    };
                     this.innerDrawerVisible = true; //显示内部抽屉
                 },
                 //点击了修改指标的按钮
@@ -1023,6 +1049,10 @@
                     var _this = this;
                     var url, message;
                     if (this.innerDrawerTitle == '新增指标') {
+                        if(typeof(_this.indiceForm.father_id)=='undefined' || _this.indiceForm.father_id==''){
+                            _this.$message.error('失败！父节点不存在');
+                            return;
+                        }
                         url = _this.urlHeader + 'request=createIndice';
                         message = '创建成功！';
                     } else {
@@ -1118,7 +1148,8 @@
                         var data = {
                             user_id: _this.currentUser.user_id,
                             scheme_id: row.scheme_id,
-                            scheme_name: value
+                            scheme_name: value,
+                            isInstance: _this.pageNo=='1-1'? 0 : 1
                         };
                         //修改体系名称
                         axios({
@@ -1135,7 +1166,7 @@
                                 });
                                 _this.getSchemeInfo(_this.pageNo == '1-1' ? 0 : 1);
                             } else {
-                                _this.$message.error('修改失败！');
+                            	_this.$message.error('修改失败，可能存在重名体系！');
                             }
                         })
                     }).catch(() => {
@@ -1355,3 +1386,5 @@
     </script>
 
     </html>
+
+    
