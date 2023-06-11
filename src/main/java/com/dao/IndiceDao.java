@@ -31,7 +31,10 @@ public interface IndiceDao {
 	
 	//删除一名用户的多个算子
 	int deleteUserOperators(@Param("user_id") int user_id, @Param("list") List<OperatorInfo> selectedDelOps);
-		
+	
+	//根据用户id查询用户在实例中已使用的算子
+	List<Integer> selectUsedOperators(int user_id);
+	
 	// 获取一名用户没有的算子
 	List<OperatorInfo> selectUserNotHaveOperators(int user_id);
 

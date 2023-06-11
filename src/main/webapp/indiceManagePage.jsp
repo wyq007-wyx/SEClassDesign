@@ -50,6 +50,12 @@
                           <el-button v-if="pageNo == '2-1'" type="primary" icon="el-icon-delete"
                               style="margin-top: 10px" @click="deleteOperators" plain>
                               删除所选算子</el-button>
+                          <el-button v-if="pageNo == '2-1'" type="primary" icon="el-icon-edit" style="margin-top: 10px"
+                              @click="changeOpContent" plain>
+                              修改所选算子</el-button>
+                          <el-tag v-if="pageNo == '3-1'"
+                              style="font-size: 20px; margin-top: 12px; background-color: #B3C0D1; border: none; color: white;">
+                              {{ scheme_nameForResult }}</el-tag>
                           <!-- 增加算子 -->
                           <el-dialog title="增加算子" :visible.sync="addUserOpDialogVisible" width="25%" center>
                               <div style="height: 250px; overflow: auto; text-align: center;">
@@ -361,7 +367,17 @@
                       </el-main>
                       <!-- 算子管理模块 -->
                       <el-main v-else-if="pageNo=='2-1'">
-                          <el-table ref="multipleTable" height="66vh" key="operators"
+                          <!-- 查询表单 -->
+                          <el-form :inline="true" class="demo-form-inline">
+                              <el-form-item label="算子信息">
+                                  <el-input v-model="opDesc" placeholder="请输入算子信息"></el-input>
+                              </el-form-item>
+                              <el-form-item>
+                                  <el-button icon="el-icon-search" type="primary" @click="queryByOpDesc">查询
+                                  </el-button>
+                              </el-form-item>
+                          </el-form>
+                          <el-table ref="multipleTable" height="59vh" key="operators"
                               :data="userOperators.slice((page.currentPage-1)*page.pageSize, page.currentPage*page.pageSize)"
                               tooltip-effect="dark" @selection-change="handleSelectionChange">
                               <el-table-column type="selection" width="200px">
@@ -438,6 +454,8 @@
                       },
                       //要查看记录的体系的id
                       schemeIDForResult: '',
+                      //要查看记录的体系的名称
+                      scheme_nameForResult: '',
                       //体系下所有运行的时间
                       resultTimes: [],
                       //运行的时间
@@ -456,6 +474,10 @@
                       selectedAddOperators: [],
                       //记录多选表格的选中行,用于删除算子
                       multipleSelection: [],
+                      //要查询的算子的信息
+                      opDesc: '',
+                      //算子内容
+                      opContent: ['相加', '相减', '相乘', '相除', '取最大值', '取最小值', '取平均值'],
                       //表格用的体系信息
                       templateTableData: [],
                       //实例信息
@@ -602,7 +624,14 @@
                       }).then(function (resp) {
                           console.log('获取到了所有时间信息:\n' + resp.data);
                           _this.resultTimes = resp.data;
-                          _this.selectExecTime();
+                          if (_this.resultTimes.length == 0) {
+                              _this.$message({
+                                  message: '该实例没有运行记录',
+                                  type: 'warning'
+                              });
+                          } else {
+                              _this.selectExecTime();
+                          }
                       })
                   },
                   //选择运行时间
@@ -651,6 +680,12 @@
                           } else {
                               //获取运算结果
                               this.getResult();
+                              for (var temp of _this.instanceTableData) {
+                                  if (temp.scheme_id == _this.schemeIDForResult) {
+                                      _this.scheme_nameForResult = temp.scheme_name;
+                                      break;
+                                  }
+                              }
                           }
                       }).catch(_ => {
                           //取消操作
@@ -711,7 +746,6 @@
                               //根据id查询时间
                               this.getAllResultTimeOfScheme();
                           }
-
                       }).catch(_ => {
                           //取消操作
                           console.log('取消');
@@ -758,6 +792,19 @@
                           _this.userNotHaveOperators = resp.data;
                       })
                   },
+                  //根据算子信息查询
+                  queryByOpDesc() {
+                      var op = {};
+                      for (var temp of this.userOperators) {
+                          if (temp.operator_description == this.opDesc) {
+                              op = temp;
+                              break;
+                          }
+                      }
+                      this.userOperators = [];
+                      this.userOperators.push(op);
+                  },
+                  //点击增添算子按钮
                   clickAddUserOpBtn() {
                       if (this.userNotHaveOperators.length == 0) {
                           this.$message({
@@ -772,8 +819,7 @@
                   addOperators() {
                       var _this = this;
                       var data = "user_id=" + this.currentUser.user_id + "&selectedAddOps=" + JSON.stringify(
-                          this
-                          .selectedAddOperators); //把数组转换为JSON字符串
+                          this.selectedAddOperators); //把数组转换为JSON字符串
                       axios({
                           method: 'post',
                           url: _this.urlHeader + 'request=addUserOperators',
@@ -833,8 +879,10 @@
                                       _this.getUserNotHaveOperators();
                                       //取消选择
                                       _this.toggleSelection(0);
+                                  } else if (resp.data == -1) {
+                                      _this.$message.error('要删除的算子已经被使用过，无法删除！');
                                   } else {
-                                      this.$message.error('删除失败');
+                                      _this.$message.error('删除失败');
                                   }
                               })
                           }).catch(() => { //点击了取消
@@ -845,13 +893,38 @@
                           });
                       }
                   },
+                  //修改算子内容
+                  changeOpContent() {
+                      var _this = this;
+                      if (this.multipleSelection.length == 1) {
+                          this.$prompt('请输入新的算子内容', '提示', {
+                              confirmButtonText: '确定',
+                              cancelButtonText: '取消'
+                          }).then(({
+                              value
+                          }) => {
+                              if (typeof value == 'undefined' || value == '') {
+                                  _this.$message.error('未输入算子内容');
+                              } else {
+                                  _this.opContent[this.multipleSelection[0].operator_id - 1] = value;
+                              }
+                          }).catch(() => {
+                              _this.$message({
+                                  type: 'info',
+                                  message: '取消修改'
+                              });
+                          });
+                      } else {
+                          _this.$message.error('一次只能修改一个算子！');
+                      }
+                  },
                   //当多选表格的选中状态改变时会调用这个函数
                   toggleSelection(option) {
                       if (option == 1) { //全选
                           this.userOperators.forEach(row => {
                               //该方法用于多选表格，切换某一行的选中状态
                               this.$refs.multipleTable.toggleRowSelection(row,
-                              true); //如果设置了第二个参数则是设置这一行选中与否
+                                  true); //如果设置了第二个参数则是设置这一行选中与否
                           });
                       } else { //取消选择
                           this.$refs.multipleTable.clearSelection();
@@ -863,23 +936,11 @@
                   },
                   //格式化算子描述内容
                   opContentFormatter(row, column, cellValue, index) {
-                      switch (row.operator_id) {
-                          case 1:
-                              return '相加';
-                          case 2:
-                              return '相减';
-                          case 3:
-                              return '相乘';
-                          case 4:
-                              return '相除';
-                          case 5:
-                              return '取最大值';
-                          case 6:
-                              return '取最小值';
-                          case 7:
-                              return '取平均值';
-                          default:
-                              return '错误的算子';
+                      let id = row.operator_id;
+                      if (id >= 1 || id <= 7) {
+                          return this.opContent[id - 1];
+                      } else {
+                          return '错误的算子';
                       }
                   },
                   //获取所有体系信息
@@ -971,7 +1032,7 @@
                           }).then(function (resp) {
                               if (resp.data == 'success') {
                                   window.location.href =
-                                  "http://localhost:2008/SEClassDesign/login.jsp";
+                                      "http://localhost:2008/SEClassDesign/login.jsp";
                               }
                           })
                       }
