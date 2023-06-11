@@ -49,8 +49,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			#{item, jdbcType=INTEGER})
 		</foreach>
 	</insert>
+	<!-- 根据用户id查询用户在实例中已使用的算子 -->
+	<select id="selectUsedOperators" parameterType="int" resultType="int">
+		select distinct indice.operator_id
+		from indice
+		where indice.scheme_id in(select scheme.scheme_id from scheme where scheme.user_id = #{user_id} and scheme.isInstance = 1)
+	</select>
 	<!-- 为用户批量删除算子 -->
-	<insert id="deleteUserOperators">
+	<delete id="deleteUserOperators">
 		delete from user_operator
 		where user_id = #{user_id} and operator_id in
 		(
@@ -58,7 +64,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			#{item.operator_id, jdbcType=INTEGER}
 		</foreach>
 		)
-	</insert>
+	</delete>
 	<!-- 修改当前用户信息 -->
 	<update id="updateCurrentUserInfo" parameterType="com.pojo.UserInfo">
 		update user
