@@ -62,7 +62,7 @@
             </span>
         </el-dialog>
         <!-- 录入问题的对话框 -->
-        <el-dialog title="重置密码的问题" :visible.sync="questionDialogVisible" width="30%" center>
+        <el-dialog title="重置密码的问题" :visible.sync="questionDialogVisible" width="30%" :show-close="false" center>
             <div>
                 <el-form :model="questionForm" label-width="80px">
                     <el-form-item label="用户ID">
