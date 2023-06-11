@@ -82,18 +82,18 @@
                     <!--点击修改信息，显示修改用户信息的对话框-->
                     <el-dialog title="修改信息" :visible.sync="clickChangeUserInfoFlag" width="30%" center>
                         <div style="height: 250px; overflow: auto">
-                            <el-form ref="form" :model="changeUserForm" label-width="80px">
+                            <el-form ref="form" :model="changeUserForm" label-width="80px" :rules="userRule">
                                 <el-form-item label="用户ID">
                                     <!-- 用户ID不允许修改，禁用状态 -->
                                     <el-input v-model="changeUserForm.user_id" disabled></el-input>
                                 </el-form-item>
-                                <el-form-item label="用户名">
+                                <el-form-item label="用户名" prop="username">
                                     <el-input v-model="changeUserForm.username"></el-input>
                                 </el-form-item>
-                                <el-form-item label="密码">
+                                <el-form-item label="密码" prop="password">
                                     <el-input v-model="changeUserForm.password" show-password></el-input>
                                 </el-form-item>
-                                <el-form-item label="邮箱地址">
+                                <el-form-item label="邮箱地址" prop="email">
                                     <el-input v-model="changeUserForm.email"><template slot="append">.com</template>
                                     </el-input>
                                 </el-form-item>

@@ -1,3 +1,4 @@
+      
 <%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -541,9 +542,11 @@
             //获取所有算子
             loadAllOperator() {
                 var _this = this;
+                var id = ${ sessionScope.currentUser.user_id };
                 axios({
                     method: 'post',
-                    url: _this.urlHeader + 'RequestFromIndiceManagePage.do?request=getAllOperators',
+                    url: 'http://localhost:2008/SEClassDesign/RequestFromIndiceManagePage.do?request=getUserOperators',
+                    data: "user_id=" + id
                 }).then(function (resp) {
                     _this.ops = resp.data
                 })
@@ -681,3 +684,5 @@
 
 </html>
 
+
+    
