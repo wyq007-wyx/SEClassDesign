@@ -8,7 +8,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,11 +34,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dao.IndiceDao;
+import com.dao.ResultDao;
 import com.dao.TreeDao;
 import com.pojo.UserInfo;
 import com.util.Util;
 import com.pojo.IndiceInfo;
 import com.pojo.OperatorInfo;
+import com.pojo.Result;
 import com.pojo.SchemeInfo;
 
 @Controller
@@ -42,6 +50,8 @@ public class IndiceController {
 	private IndiceDao indiceDao;
 	@Autowired
 	private TreeDao treeDao;
+	@Autowired
+	private ResultDao resultDao;
 
 	/**
 	 * 获取所有的体系信息
@@ -76,7 +86,64 @@ public class IndiceController {
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(data));
 	}
-
+	/**
+	 * 获取一名用户的所有的算子
+	 * @param user_id 用户id
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=getUserOperators")
+	public void getUserOperators(String user_id, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=getUserOperators的url请求");
+		List<OperatorInfo> data = this.indiceDao.selectUserOperators(Integer.parseInt(user_id));
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(data));
+	}
+	/**
+	 * 获取一名用户没有的算子
+	 * @param user_id 用户id
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=getUserNotHaveOperators")
+	public void getUserNotHaveOperators(String user_id, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=getUserNotHaveOperators的url请求");
+		List<OperatorInfo> data = this.indiceDao.selectUserNotHaveOperators(Integer.parseInt(user_id));
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(data));
+	}
+	/**
+	 * 为用户增添算子
+	 * @param user_id 用户id
+	 * @param selectedAddOps 要增添的算子的id
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=addUserOperators")
+	public void addUserOperators(String user_id, String selectedAddOps, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=addUserOperators的url请求");
+		int id = Integer.parseInt(user_id);
+		List<Integer> list = JSONObject.parseArray(selectedAddOps, Integer.class);//解析出要删除的用户的算子
+		int num = this.indiceDao.addUserOperators(id, list);
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(num));
+	}
+	/**
+	 * 删除用户的算子
+	 * @param user_id 用户id
+	 * @param selectedDelOps 用户选中的要删除算子
+	 * @param response
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=deleteUserOperators")
+	public void deleteUserOperators(String user_id, String selectedDelOps, HttpServletResponse response) throws IOException {
+		System.out.println("捕获到参数为request=deleteUserOperators的url请求");
+		int id = Integer.parseInt(user_id);
+		List<OperatorInfo> list = JSONObject.parseArray(selectedDelOps, OperatorInfo.class);//解析出要删除的用户的算子
+		int num = this.indiceDao.deleteUserOperators(id, list);
+		response.setContentType("text/json;charset=utf-8");
+		response.getWriter().write(JSON.toJSONString(num));
+	}
 	/**
 	 * 退出登录
 	 * 
@@ -212,7 +279,11 @@ public class IndiceController {
 		BufferedReader br = request.getReader();
 		String line = br.readLine();
 		SchemeInfo scheme = JSON.parseObject(line, SchemeInfo.class);// 把JSON字符串解析为JavaBean
-		int num = this.indiceDao.updateSchemeInfo(scheme);
+		List<SchemeInfo> list = this.indiceDao.selectRenamedScheme(scheme);// 判断该用户下是否存在同名体系的模板或实例
+		int num = -1;
+		if(list.size() == 0) {//若没有重名体系
+			num = this.indiceDao.updateSchemeInfo(scheme);
+		}
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(num));
 	}
@@ -303,9 +374,13 @@ public class IndiceController {
 		BufferedReader br = request.getReader();
 		String line = br.readLine();
 		IndiceInfo indice = JSON.parseObject(line, IndiceInfo.class);// 把JSON字符串解析为JavaBean
-		IndiceInfo fatherIndice = this.indiceDao.selectIndiceInfoByIndice_id(indice.getFather_id(), indice.getScheme_id());
 		int num = -1;
-		if(fatherIndice != null) {
+		if(indice.getFather_id() != -1) {//若不是根节点，需要判断父节点是否存在
+			IndiceInfo fatherIndice = this.indiceDao.selectIndiceInfoByIndice_id(indice.getFather_id(), indice.getScheme_id());
+			if(fatherIndice != null) {
+				num = this.indiceDao.updateIndiceInfo(indice);
+			}
+		}else {
 			num = this.indiceDao.updateIndiceInfo(indice);
 		}
 		response.setContentType("text/json;charset=utf-8");
@@ -472,5 +547,68 @@ public class IndiceController {
 
 		// 使用工具类直接将文件的字节复制到响应输出流中
 		FileCopyUtils.copy(new FileInputStream(file), response.getOutputStream());
+	}
+	
+	/**
+	 * 
+	 * @param request
+	 * @param response
+	 * @param scheme_id
+	 * @throws IOException
+	 */
+	@RequestMapping(params = "request=getAllResultTime")
+	public void getAllResultTime(HttpServletResponse response, String scheme_id) throws IOException {
+		System.out.println("getTimeRequest");
+		List<Date> dateList = resultDao.selectTimeBySchemeId(Integer.parseInt(scheme_id));
+		
+		List<String> timeList = new ArrayList<>();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		for(Date d: dateList) {
+			timeList.add(sdf.format(d));
+		}
+		
+		response.getWriter().write(JSON.toJSONString(timeList));
+	}
+	
+	/**
+	 * 
+	 * @param response
+	 * @param scheme_id
+	 * @param time
+	 * @throws IOException
+	 * @throws NumberFormatException
+	 * @throws ParseException
+	 */
+	@RequestMapping(params = "request=getResult")
+	public void getAllResultTime(HttpServletResponse response, String scheme_id, String exec_time) throws IOException, NumberFormatException, ParseException {
+		System.out.println("getResultRequest");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		List<Result> resList = resultDao.selectResultBySchemeIdANDTime(Integer.parseInt(scheme_id), sdf.parse(exec_time));
+		
+		List<String> strResList = new ArrayList<>();
+		Map<Integer,List<Result>> map = new HashMap<>();
+		
+		for(Result res:resList) {
+			if(map.containsKey(res.getGroupId())) {
+				map.get(res.getGroupId()).add(res);
+			}else {
+				List<Result> list = new ArrayList<>();
+				list.add(res);
+				map.put(res.getGroupId(), list);
+			}
+		}
+		
+		for(int i : map.keySet()) {
+			List<Result> tmpList = map.get(i);
+			
+			List<String> strList = new ArrayList<>();
+			for(Result r:tmpList) {
+				strList.add(JSON.toJSONString(r));
+			}
+			strResList.add(JSON.toJSONString(strList));
+		}
+		
+		response.getWriter().write(JSON.toJSONString(strResList));
 	}
 }

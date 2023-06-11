@@ -23,6 +23,18 @@ public interface IndiceDao {
 	// 获取所有的算子信息
 	List<OperatorInfo> selectAllOperator();
 
+	// 获取一个用户的所有的算子信息
+	List<OperatorInfo> selectUserOperators(int user_id);
+
+	//为一名用户增添多个算子
+	int addUserOperators(@Param("user_id") int user_id, @Param("list") List<Integer> selectedAddOps);
+	
+	//删除一名用户的多个算子
+	int deleteUserOperators(@Param("user_id") int user_id, @Param("list") List<OperatorInfo> selectedDelOps);
+		
+	// 获取一名用户没有的算子
+	List<OperatorInfo> selectUserNotHaveOperators(int user_id);
+
 	// 修改当前用户信息
 	int updateCurrentUserInfo(UserInfo user);
 
@@ -53,8 +65,8 @@ public interface IndiceDao {
 	// 更新一个指标
 	int updateIndiceInfo(IndiceInfo indice);
 
-	//根据指标id、体系id查询指标
- 	IndiceInfo selectIndiceInfoByIndice_id(@Param("indice_id") int indice_id, @Param("scheme_id") int scheme_id);
+	// 根据指标id、体系id查询指标
+	IndiceInfo selectIndiceInfoByIndice_id(@Param("indice_id") int indice_id, @Param("scheme_id") int scheme_id);
 
 	// 根据体系id查询体系名称
 	String selectScheme_nameByScheme_id(int scheme_id);

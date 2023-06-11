@@ -195,7 +195,8 @@
                         },
                         extraCssText: 'width:300px;white-space:pre-wrap;',
                         formatter: function (params, ticket, callback) {
-                            var tsxx = params.data.describes == "" || params.data.describes == null ? params.data.name : params.data.describes;
+                            //var tsxx = params.data.describes == "" || params.data.describes == null ? (params.data.name+": "+params.data.indice.indice_value): params.data.describes;
+                            var tsxx = params.data.describes == "" || params.data.describes == null ? params.data.name: params.data.describes;
                             return tsxx;
                         }
                     },
