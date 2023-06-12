@@ -59,6 +59,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		</foreach>
 		)
 	</insert>
+	<!-- 根据用户id查询用户在实例中已使用的算子 -->
+	<select id="selectUsedOperators" parameterType="int" resultType="com.pojo.OperatorInfo">
+		select * from operator where operator_id 
+		in(select distinct(operator_id) from indice where scheme_id in(select scheme_id from scheme where user_id=#{user_id}))
+	</select>
+	
 	<!-- 修改当前用户信息 -->
 	<update id="updateCurrentUserInfo" parameterType="com.pojo.UserInfo">
 		update user

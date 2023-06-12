@@ -70,4 +70,7 @@ public interface IndiceDao {
 
 	// 根据体系id查询体系名称
 	String selectScheme_nameByScheme_id(int scheme_id);
+	
+	//根据用户id查询用户在实例中已使用的算子
+	List<OperatorInfo> selectUsedOperators(int user_id);
 }

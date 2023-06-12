@@ -140,7 +140,16 @@ public class IndiceController {
 		System.out.println("捕获到参数为request=deleteUserOperators的url请求");
 		int id = Integer.parseInt(user_id);
 		List<OperatorInfo> list = JSONObject.parseArray(selectedDelOps, OperatorInfo.class);//解析出要删除的用户的算子
-		int num = this.indiceDao.deleteUserOperators(id, list);
+		List<OperatorInfo> existedList=this.indiceDao.selectUsedOperators(id);
+		int num=0;
+		for(OperatorInfo op:list) {
+			if(existedList.contains(op)) {
+				num=-1;
+			}
+		}
+		if(num!=-1) {
+			 num = this.indiceDao.deleteUserOperators(id, list);
+		}
 		response.setContentType("text/json;charset=utf-8");
 		response.getWriter().write(JSON.toJSONString(num));
 	}
