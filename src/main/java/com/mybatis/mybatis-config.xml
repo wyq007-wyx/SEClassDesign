@@ -9,6 +9,7 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
 		<mapper resource="com/mybatis/AdministratorMapper.xml" />
 		<mapper resource="com/mybatis/IndiceMapper.xml" />
 		<mapper resource="com/mybatis/TreeMapper.xml" />
+		<mapper resource="com/mybatis/ResultMapper.xml" />
 	</mappers>
 
 </configuration>

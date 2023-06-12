@@ -1,16 +1,15 @@
 package com.pojo;
 
-public class IndiceInfo {
+
+
+public class IndiceInfo implements Comparable<IndiceInfo>{
 	private Integer indice_id;//指标id
 	private String indice_name;//指标名称
 	private Double indice_weight;//指标权重
 	private Double indice_value;//指标值
-	private Integer  father_id;//指标父节点
+	private Integer father_id;//指标父节点
 	private Integer operator_id;//指标算子
 	private int scheme_id;//指标所属体系
-	
-	
-	
 	
 	public IndiceInfo() {
 	}
@@ -73,6 +72,10 @@ public class IndiceInfo {
 	}
 	public void display() {
 		System.out.println("[indice_id:"+indice_id+",indice_name:"+indice_name+"]");
+	}
+	@Override
+	public int compareTo(IndiceInfo o) {
+		return Integer.compare(this.getIndice_id(),o.getIndice_id());
 	}
 	
 }

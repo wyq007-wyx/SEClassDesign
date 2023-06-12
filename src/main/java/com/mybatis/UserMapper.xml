@@ -30,4 +30,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<update id="updatePassword">
 		update user set password = #{password} where user_id = #{user_id}
 	</update>
+	<select id="selectUserByNameAndEmail" resultType="com.pojo.UserInfo">
+		select * from user where username = #{username} and email = #{email}
+	</select>
 </mapper>

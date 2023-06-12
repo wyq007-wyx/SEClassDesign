@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.ResultDao">
+	<!-- 根据体系id和计算时间从结果表中查询结果信息 -->
+	<select id="selectResultBySchemeIdANDTime" resultType="com.pojo.Result">
+		select * from calc_result where scheme_id = #{scheme_id} and exec_time = #{exec_time}
+	</select>
+	
+	<!-- 根据体系id获取计算时间 -->
+	<select id="selectTimeBySchemeId" resultType="java.util.Date">
+		select distinct exec_time from calc_result where scheme_id = #{scheme_id}
+	</select>
+	
+	
+	<!-- 插入结果信息 -->
+	<insert id="insertResult" parameterType="com.pojo.Result"
+		keyProperty="id" useGeneratedKeys="true">
+		insert into calc_result (scheme_id, indice_name, indice_value, groupId, exec_time)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.scheme_id, jdbcType=INTEGER},
+			#{item.indice_name, jdbcType=VARCHAR},
+			#{item.indice_value, jdbcType=DOUBLE},
+			#{item.groupId, jdbcType=INTEGER},
+			#{item.exec_time, jdbcType=TIMESTAMP})
+		</foreach>
+	</insert>
+</mapper>
